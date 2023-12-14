@@ -18,7 +18,7 @@ LCYAN='\033[01;36m'
 WHITE='\033[01;37m'
 
 # Carga de Variables Desde Archivo.
-source ../full_config.sh
+source ./full_config.conf
 #Comprobacion de los datos de las variables.
 echo -e "${RESTORE}"
 echo -e "#########################################"
@@ -118,7 +118,7 @@ configura_hosts_file(){
   echo -e "###########################\n"
 
   #Actualizacion del etc/hosts usando las variables definidas en el archivo de configuracion.
-  cp ../Template_Files/hosts_template /etc/hosts
+  cp ./Template_Files/hosts_template /etc/hosts
   sed -i "s/__IP__/$IPHelper/g" /etc/hosts
   sed -i "s/__HostName__/$HostName/g" /etc/hosts
   sed -i "s/__ShortHostName__/$ShortHostName/g" /etc/hosts
@@ -129,6 +129,63 @@ configura_hosts_file(){
   echo -e "\n"
 }
 
+configura_seguridad(){
+  echo -e "############################"
+  echo -e "# Deshabilitando Seguridad #"
+  echo -e "############################\n"
+
+  #Deshabilitacion de firewalld y muestreo de estado.
+  echo -e "# Desactivando firewall.\n"
+  systemctl stop firewalld
+  systemctl disable firewalld
+  echo -e "# Firewall desactivado.\n"
+  systemctl status firewalld |grep 'Loaded\|Active'
+
+  #Deshabilitacion de Selinux y muestreo de estado.
+  echo -e "\n# Desactivando SELINUX."
+  setenforce 0
+  sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+  echo -e "# SELINUX desactivado."
+  echo -e "# Estado de SELINUX: `getenforce`.\n"
+}
+
+configura_ntp(){
+  echo -e "#################################"
+  echo -e "# Configurando Zona Horaria UTC #"
+  echo -e "#################################\n"
+
+  #Configuracion de Zona Horaria y muestreo de resultado.
+  timedatectl set-timezone UTC
+  echo -e "Fecha:${GREEN} `date`"
+  echo -e "${RESTORE}"
+
+  echo -e "##################################"
+  echo -e "# Configuracion Del Servicio NTP #"
+  echo -e "##################################\n"
+
+  cp ./Template_Files/chrony.conf_template /etc/chrony.conf
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /etc/chrony.conf
+  sed -i "s/__NTPSERVER1__/$NTPSERVER1/g" /etc/chrony.conf
+  sed -i "s/__NTPSERVER2__/$NTPSERVER2/g" /etc/chrony.conf
+  sed -i "s/__NTPSERVER3__/$NTPSERVER3/g" /etc/chrony.conf
+  sed -i "s/__NTPSERVER4__/$NTPSERVER4/g" /etc/chrony.conf
+
+  systemctl restart chronyd
+  systemctl enable chronyd
+  echo -e "# Servicio NTP Configurado.\n"
+  systemctl status chronyd |grep 'Loaded\|Active'
+  echo -e "${GREEN}"
+  chronyc sources
+  echo -e "${RESTORE}"
+}
+
+extra_conf(){
+  #Configuracion de parametros del kernel.
+  echo "user.max_user_namespaces=10000" > /etc/sysctl.d/42-rootless.conf
+  sysctl -p
+  #Creacion de la carpeta Data
+  mkdir -p ${REGISTRY_BASE}/data
+}
 
 config_general(){
   configura_repos;
@@ -136,216 +193,56 @@ config_general(){
   destarea_mirror;
   actualiza_hostname;
   configura_hosts_file;
+  configura_seguridad;
+  configura_ntp;
+  extra_conf;
 }
 
-config_general;
+configura_dns_generico(){
+  echo -e "##################################"
+  echo -e "# Configuracion Del Servicio DNS #"
+  echo -e "##################################\n"
+
+  # Configuracion de DNS
+  cp ./Template_Files/named.conf_template /etc/named.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/named.conf
+  sed -i "s/__IPREV__/$IPRev/g" /etc/named.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
+  
+  # Configuracion de la zona DNS
+  cp ./Template_Files/generic.zone_template /var/named/$Domain.zone
+  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.zone
+  sed -i "s/__IP__/$IPHelper/g" /var/named/$Domain.zone
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$Domain.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$Domain.zone
+  
+  # Configuracion de la zona reversa.
+  cp ./Template_Files/generic.rev.zone_template /var/named/$Domain.rev.zone
+  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.rev.zone
+  sed -i "s/__IPREV__/$IPRev/g" /var/named/$Domain.rev.zone
+  
+  systemctl restart named
+  systemctl enable named
+  systemctl status named |grep 'Loaded\|Active'
+}
+
+
+
+main(){
+  config_general;
+  #Variables Para Imagenes
+  kernel=`ls /opt/registry/downloads/images/*kernel* |cut -d"/" -f 6`
+  initramfs=`ls /opt/registry/downloads/images/*initram* | cut -d"/" -f 6`
+  rootfs=`ls /opt/registry/downloads/images/*rootfs* | cut -d"/" -f 6`
+  configura_dns_generico;
+}
+
+main;
+
 exit;
 
 
-
-
-
-
-
-#Variables Para Imagenes
-kernel=`ls /opt/registry/downloads/images/*kernel* | xargs -n1 -I{} basename "{}"`
-initramfs=`ls /opt/registry/downloads/images/*initram* | xargs -n1 -I{} basename "{}"`
-rootfs=`ls /opt/registry/downloads/images/*rootfs* | xargs -n1 -I{} basename "{}"`
-
-
-
-echo -e "############################"
-echo -e "# Deshabilitando Seguridad #"
-echo -e "############################\n"
-
-#Deshabilitacion de firewalld y muestreo de estado.
-echo -e "# Desactivando firewall.\n"
-systemctl stop firewalld
-systemctl disable firewalld
-echo -e "# Firewall desactivado.\n"
-systemctl status firewalld |grep 'Loaded\|Active'
-
-#Deshabilitacion de Selinux y muestreo de estado.
-echo -e "\n# Desactivando SELINUX."
-setenforce 0
-sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-echo -e "# SELINUX desactivado."
-echo -e "# Estado de SELINUX: `getenforce`.\n"
-
-echo -e "#################################"
-echo -e "# Configurando Zona Horaria UTC #"
-echo -e "#################################\n"
-
-#Configuracion de Zona Horaria y muestreo de resultado.
-timedatectl set-timezone UTC
-echo -e "Fecha:${GREEN} `date`"
-echo -e "${RESTORE}"
-
-echo -e "##################################"
-echo -e "# Configuracion Del Servicio NTP #"
-echo -e "##################################\n"
-
-cat > /etc/chrony.conf << EOF 
-# Use public servers from the pool.ntp.org project.
-# Please consider joining the pool (http://www.pool.ntp.org/join.html).
-server $NTPSERVER1 iburst
-server $NTPSERVER2 iburst
-server $NTPSERVER3 iburst
-server $NTPSERVER4 iburst
-
-
-# Record the rate at which the system clock gains/losses time.
-driftfile /var/lib/chrony/drift
-
-# Allow the system clock to be stepped in the first three updates
-# if its offset is larger than 1 second.
-makestep 1.0 3
-
-# Enable kernel synchronization of the real-time clock (RTC).
-rtcsync
-
-# Allow NTP client access from local network.
-allow $IPSegment.0/22
-
-# Serve time even if not synchronized to a time source.
-local stratum 10
-
-# Specify file containing keys for NTP authentication.
-keyfile /etc/chrony.keys
-
-# Get TAI-UTC offset and leap seconds from the system tz database.
-leapsectz right/UTC
-
-# Specify directory for log files.
-logdir /var/log/chrony
-
-EOF
-
-systemctl restart chronyd
-systemctl enable chronyd
-echo -e "# Servicio NTP Configurado.\n"
-systemctl status chronyd |grep 'Loaded\|Active'
-echo -e "${GREEN}"
-chronyc sources
-echo -e "${RESTORE}"
-
-
-#Configuracion de parametros del kernel.
-
-cat > /etc/sysctl.d/42-rootless.conf << EOF
-user.max_user_namespaces=10000
-EOF
-sysctl -p
-
-#Creacion de la carpeta Data
-mkdir -p ${REGISTRY_BASE}/data
-
-echo -e "##################################"
-echo -e "# Configuracion Del Servicio DNS #"
-echo -e "##################################\n"
-
-#Configuracion de DNS
-sed -i '/dnssec-validation/s/yes/no/g' /etc/named.conf
-sed -i '/dnssec-enable/s/yes/no/g' /etc/named.conf
-sed -i "/listen-on port 53/s/; /; ${IPHelper}; /g" /etc/named.conf
-sed -i '/allow-query/s/localhost/any/g' /etc/named.conf
-
-cat >> /etc/named.conf << EOF
-zone "${Domain}" in {
-      type master;
-      file "${Domain}.zone";
-};
-
-zone "$IPRev.in-addr.arpa" {
-      type master;
-      file "${Domain}.rev.zone";
-      allow-update { none; };
-};
-
-EOF
-
-cat > /var/named/${Domain}.zone << EOF
-\$TTL 1W
-@       IN      SOA     ns1.${Domain}.        root (
-                        2019070700      ; serial
-                        3H              ; refresh (3 hours)
-                        30M             ; retry (30 minutes)
-                        2W              ; expiry (2 weeks)
-                        1W )            ; minimum (1 week)
-        IN      NS      ns1.${Domain}.
-        IN      MX 10   smtp.${Domain}.
-;
-;
-ns1.${Domain}.                IN      A       ${IPHelper}
-;
-${ShortHostName}.${Domain}.            IN      A       ${IPHelper}
-;
-api.${Domain}.           IN      A       ${IPHelper}
-api-int.${Domain}.       IN      A       ${IPHelper}
-;
-*.apps.${Domain}.        IN      A       ${IPHelper}
-*.hiperion.${Domain}     IN      A       ${IPHelper}
-*.sia.${Domain}          IN      A       ${IPHelper}
-*.impact.${Domain}       IN      A       ${IPHelper}
-;
-registryapp.${Domain}    IN      A       $IPSegment.2
-;
-bootstrap.${Domain}.     IN      A       $IPSegment.5
-;
-master-01.${Domain}.     IN      A       $IPSegment.6
-master-02.${Domain}.     IN      A       $IPSegment.7
-master-03.${Domain}.     IN      A       $IPSegment.8
-;
-worker-01.${Domain}.     IN      A       $IPSegment.9
-worker-02.${Domain}.     IN      A       $IPSegment.10
-worker-03.${Domain}.     IN      A       $IPSegment.11
-
-ntpmad1.${Domain}.       IN      CNAME   ntpmad1.satm.maqtor.
-ntpmad2.${Domain}.       IN      CNAME   ntpmad2.satm.maqtor.
-ntpbcn1.${Domain}.       IN      CNAME   ntpbcn1.satm.maqtor.
-ntpbcn2.${Domain}.       IN      CNAME   ntpbcn2.satm.maqtor.
-
-idmmad.${Domain}.        IN      CNAME   idmmad.satm.maqtor.
-idmbcn.${Domain}.        IN      CNAME   idmbcn.satm.maqtor.
-
-
-EOF
-
-cat > /var/named/${Domain}.rev.zone << EOF
-\$ORIGIN $IPRev.in-addr.arpa.
-\$TTL 1W
-@       IN      SOA     ns1.${Domain}.        root (
-                        2019070700      ; serial
-                        3H              ; refresh (3 hours)
-                        30M             ; retry (30 minutes)
-                        2W              ; expiry (2 weeks)
-                        1W )            ; minimum (1 week)
-        IN      NS      ns1.${Domain}.
-        IN      NS      nfs.${Domain}.
-;
-1      IN  PTR stargate.${Domain}.
-1      IN  PTR api.${Domain}.
-1      IN  PTR api-int.${Domain}.
-;
-2      IN  PTR registryapp.${Domain}.
-;
-5      IN  PTR bootstrap.${Domain}.
-;
-6      IN  PTR master-01.${Domain}.
-7      IN  PTR master-02.${Domain}.
-8      IN  PTR master-03.${Domain}.
-;
-9      IN  PTR worker-01.${Domain}.
-10     IN  PTR worker-02.${Domain}.
-11     IN  PTR worker-03.${Domain}.
-;
-
-EOF
-
-
-systemctl restart named
-systemctl enable named
-systemctl status named |grep 'Loaded\|Active'
 
 echo -e "\n##############################################"
 echo -e "# Configuracion Del Servicio DNS para ISILON #"
