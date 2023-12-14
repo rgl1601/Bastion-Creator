@@ -211,14 +211,14 @@ configura_dns_generico(){
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
   
   # Configuracion de la zona DNS
-  cp ./Template_Files/generic.zone_template /var/named/$Domain.zone
+  cp ./Template_Files/generic/generic.zone_template /var/named/$Domain.zone
   sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.zone
   sed -i "s/__IP__/$IPHelper/g" /var/named/$Domain.zone
   sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$Domain.zone
   sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$Domain.zone
   
   # Configuracion de la zona reversa.
-  cp ./Template_Files/generic.rev.zone_template /var/named/$Domain.rev.zone
+  cp ./Template_Files/generic/generic.rev.zone_template /var/named/$Domain.rev.zone
   sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.rev.zone
   sed -i "s/__IPREV__/$IPRev/g" /var/named/$Domain.rev.zone
   
