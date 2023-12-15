@@ -1,0 +1,69 @@
+global
+  log         127.0.0.1 local2
+  pidfile     /var/run/haproxy.pid
+  maxconn     4000
+  daemon
+  ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+  ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+  ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
+  ca-base /etc/ssl/certs
+  crt-base /etc/ssl/private
+defaults
+  mode                    http
+  log                     global
+  option                  dontlognull
+  option http-server-close
+  option                  redispatch
+  retries                 3
+  timeout http-request    10s
+  timeout queue           3m
+  timeout connect         10s
+  timeout client          3m
+  timeout server          3m
+  timeout http-keep-alive 10s
+  timeout check           10s
+  maxconn                 3000
+frontend stats
+  bind *:1936
+  mode            http
+  log             global
+  maxconn 10
+  stats enable
+  stats hide-version
+  stats refresh 30s
+  stats show-node
+  stats show-desc Stats for __CLUSTERNAME__ cluster
+  stats auth admin:__CLUSTERNAME__
+  stats uri /stats
+listen api-server-6443
+  bind *:6443
+  mode tcp
+  server bootstrap bootstrap.__DOMAIN__:6443 check inter 1s
+  server master-01 master-01.__DOMAIN__:6443 check inter 1s
+  server master-02 master-02.__DOMAIN__:6443 check inter 1s
+  server master-03 master-03.__DOMAIN__:6443 check inter 1s
+listen machine-config-server-22623
+  bind *:22623
+  mode tcp
+  server bootstrap bootstrap.__DOMAIN__:22623 check inter 1s
+  server master-01 master-01.__DOMAIN__:22623 check inter 1s
+  server master-02 master-02.__DOMAIN__:22623 check inter 1s
+  server master-03 master-03.__DOMAIN__:22623 check inter 1s
+listen ingress-router-443
+  bind *:443
+  mode tcp
+  option forwardfor
+  http-request set-header X-Forwarded-Proto http if !{ ssl_fc }
+  http-request set-header X-Forwarded-Proto https if { ssl_fc }
+  http-request set-header X-Forwarded-Port 443
+  balance source
+  server worker-01 worker-01.__DOMAIN__:443 check inter 1s
+  server worker-02 worker-02.__DOMAIN__:443 check inter 1s
+  server worker-03 worker-03.__DOMAIN__:443 check inter 1s
+listen ingress-router-80
+  bind *:80
+  mode tcp
+  balance source
+  server worker-01 worker-01.__DOMAIN__:80 check inter 1s
+  server worker-02 worker-02.__DOMAIN__:80 check inter 1s
+  server worker-03 worker-03.__DOMAIN__:80 check inter 1s

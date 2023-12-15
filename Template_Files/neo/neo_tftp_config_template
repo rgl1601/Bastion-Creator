@@ -1,0 +1,32 @@
+default menu.c32
+prompt 0
+timeout 0
+menu title Openshift 4.x PXE Menu
+
+label INSTALL BOOTSTRAP
+kernel /rhcos/${kernel}
+append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/bootstrap.ign
+
+label INSTALL MASTER-1
+kernel /rhcos/${kernel}
+append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.6::$IPGateway:255.255.252.0:master-01.$Domain:enp1s0:none nameserver=$IPDns
+
+label INSTALL MASTER-2
+kernel /rhcos/${kernel}
+append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.7::$IPGateway:255.255.252.0:master-02.$Domain:enp1s0:none nameserver=$IPDns
+
+label INSTALL MASTER-3
+kernel /rhcos/${kernel}
+append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.8::$IPGateway:255.255.252.0:master-03.$Domain:enp1s0:none nameserver=$IPDns
+
+label INSTALL WORKER-1
+kernel /rhcos/${kernel}
+append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.9::$IPGateway:255.255.252.0:worker-01.$Domain:enp1s0:none nameserver=$IPDns
+
+label INSTALL WORKER-2
+kernel /rhcos/${kernel}
+append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.10::$IPGateway:255.255.252.0:worker-02.$Domain:enp1s0:none nameserver=$IPDns
+
+label INSTALL WORKER-3
+kernel /rhcos/${kernel}
+append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.11::$IPGateway:255.255.252.0:worker-03.$Domain:enp1s0:none nameserver=$IPDns

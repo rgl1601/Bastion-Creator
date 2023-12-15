@@ -1,0 +1,48 @@
+#
+# VLAN ...(__IPSEGMENT__/__NETWORKMASKOCTAL__)
+#
+subnet __IPSEGMENT__.0 netmask __NETWORKMASK__ {
+  option subnet-mask  __NETWORKMASK__;
+  option domain-name  "__DOMAIN__";
+  option ntp-servers      __NTPSERVER1__, __NTPSERVER2__, __NTPSERVER3__, __NTPSERVER4__;
+  option domain-name-servers      __IP__;
+  option time-offset  1;next-server  __HostName__;
+  filename  "pxelinux.0";
+}group openshift4
+        {
+        host master-01 {
+                hardware ethernet        __MACMASTER1__;
+                fixed-address            __IPMASTER1__;
+                option host-name         "master-01.__DOMAIN__";
+        }
+        host master-02 {
+                hardware ethernet        __MACMASTER2__;
+                fixed-address            __IPMASTER2__;
+                option host-name         "master-02.__DOMAIN__";
+        }
+        host master-03 {
+                hardware ethernet        __MACMASTER3__;
+                fixed-address            __IPMASTER3__;
+                option host-name         "master-03.__DOMAIN__";
+        }
+        host worker-01 {
+                hardware ethernet        __MACWORKER1__;
+                fixed-address            __IPWORKER1__;
+                option host-name         "worker-01.__DOMAIN__";
+        }
+        host worker-02 {
+                hardware ethernet        __MACWORKER2__;
+                fixed-address            __IPWORKER2__;
+                option host-name         "worker-02.__DOMAIN__";
+        }
+        host worker-03 {
+                hardware ethernet        __MACWORKER3__;
+                fixed-address            __IPWORKER3__;
+                option host-name         "worker-03.__DOMAIN__";
+        }
+        host bootstrap {
+                hardware ethernet        __MACBOOTSTRAP__;
+                fixed-address            __IPBOOTSTRAP__;
+                option host-name         "bootstrap.__DOMAIN__";
+        }
+}

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#Lista de colores para el terminal
+# Lista de colores para el terminal
 RESTORE='\033[0m'
 RED='\033[00;31m'
 GREEN='\033[00;32m'
@@ -19,7 +19,7 @@ WHITE='\033[01;37m'
 
 # Carga de Variables Desde Archivo.
 source ./full_config.conf
-#Comprobacion de los datos de las variables.
+# Comprobacion de los datos de las variables.
 echo -e "${RESTORE}"
 echo -e "#########################################"
 echo -e "# Compruebe si los datos son correctos: #"
@@ -57,12 +57,14 @@ echo -e "${RESTORE}IP Servidor NTP 3:${GREEN} $NTPSERVER3"
 echo -e "${RESTORE}IP Servidor NTP 4:${GREEN} $NTPSERVER4"
 echo -e "${RESTORE}"
 
-#Logica para permitir cortar la ejecucion en caso de que las variables sean incorrectas.
+# Logica para permitir cortar la ejecucion en caso de que las variables sean incorrectas.
 echo "¿Son correctas las variables? (Y/N)";read RESPUESTA
 if [[ $RESPUESTA != [Yy] ]];
 then
     exit;
 fi
+
+#-----------------------------------------------------------------------
 
 configura_repos(){
   echo -e "\n#####################################"
@@ -72,6 +74,8 @@ configura_repos(){
   # Copia del archivo de configuracion de repositorios.
   cp ./Template_Files/dvd.repo /etc/yum.repos.d/dvd.repo
 }
+
+#-----------------------------------------------------------------------
 
 instala_paquetes(){
   # Instalacion de paquetes con yum.
@@ -84,6 +88,8 @@ instala_paquetes(){
   yum install $pkgs -y
 }
 
+#-----------------------------------------------------------------------
+
 destarea_mirror(){
   echo -e "\n###################################"
   echo -e "# Destareando archivos necesarios #"
@@ -92,12 +98,14 @@ destarea_mirror(){
   tar -xvf /*-registry.tar -C /
 }
 
+#-----------------------------------------------------------------------
+
 actualiza_hostname(){
   echo -e "\n#########################"
   echo -e "# Actualizando Hostname #"
   echo -e "#########################\n"
 
-  #Actualizacion de hostname y dominio en base al archivo de variables.
+  # Actualizacion de hostname y dominio en base al archivo de variables.
   hostname $HostName.$ClusterName.$Domain
   hostnamectl set-hostname $HostName.$ClusterName.$Domain
 
@@ -105,43 +113,47 @@ actualiza_hostname(){
   ShortHostName=`hostname -s`
   Domain=`hostname -d`
 
-  #Muestreo del resultado.
+  # Muestreo del resultado.
   echo -e "${RESTORE}Hostname completo:${GREEN} `hostname`"
   echo -e "${RESTORE}Hostname corto:${GREEN} `hostname -s`"
   echo -e "${RESTORE}Dominio:${GREEN} `hostname -d`"
   echo -e "${RESTORE}"
 }
 
+#-----------------------------------------------------------------------
+
 configura_hosts_file(){
   echo -e "\n###########################"
   echo -e "# Actualizando /etc/hosts #"
   echo -e "###########################\n"
 
-  #Actualizacion del etc/hosts usando las variables definidas en el archivo de configuracion.
+  # Actualizacion del etc/hosts usando las variables definidas en el archivo de configuracion.
   cp ./Template_Files/hosts_template /etc/hosts
   sed -i "s/__IP__/$IPHelper/g" /etc/hosts
   sed -i "s/__HostName__/$HostName/g" /etc/hosts
   sed -i "s/__ShortHostName__/$ShortHostName/g" /etc/hosts
 
-  #Muestreo del archivo /etc/hosts para comrpobar que está correcto"
+  # Muestreo del archivo /etc/hosts para comrpobar que está correcto"
   echo -e "# Archivo /etc/hosts actualizado: \n"
   cat /etc/hosts
   echo -e "\n"
 }
+
+#-----------------------------------------------------------------------
 
 configura_seguridad(){
   echo -e "############################"
   echo -e "# Deshabilitando Seguridad #"
   echo -e "############################\n"
 
-  #Deshabilitacion de firewalld y muestreo de estado.
+  # Deshabilitacion de firewalld y muestreo de estado.
   echo -e "# Desactivando firewall.\n"
   systemctl stop firewalld
   systemctl disable firewalld
   echo -e "# Firewall desactivado.\n"
   systemctl status firewalld |grep 'Loaded\|Active'
 
-  #Deshabilitacion de Selinux y muestreo de estado.
+  # Deshabilitacion de Selinux y muestreo de estado.
   echo -e "\n# Desactivando SELINUX."
   setenforce 0
   sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
@@ -149,12 +161,14 @@ configura_seguridad(){
   echo -e "# Estado de SELINUX: `getenforce`.\n"
 }
 
+#-----------------------------------------------------------------------
+
 configura_ntp(){
   echo -e "#################################"
   echo -e "# Configurando Zona Horaria UTC #"
   echo -e "#################################\n"
 
-  #Configuracion de Zona Horaria y muestreo de resultado.
+  # Configuracion de Zona Horaria y muestreo de resultado.
   timedatectl set-timezone UTC
   echo -e "Fecha:${GREEN} `date`"
   echo -e "${RESTORE}"
@@ -179,13 +193,17 @@ configura_ntp(){
   echo -e "${RESTORE}"
 }
 
+#-----------------------------------------------------------------------
+
 extra_conf(){
-  #Configuracion de parametros del kernel.
+  # Configuracion de parametros del kernel.
   echo "user.max_user_namespaces=10000" > /etc/sysctl.d/42-rootless.conf
   sysctl -p
-  #Creacion de la carpeta Data
+  # Creacion de la carpeta Data
   mkdir -p ${REGISTRY_BASE}/data
 }
+
+#-----------------------------------------------------------------------
 
 config_general(){
   configura_repos;
@@ -198,17 +216,23 @@ config_general(){
   extra_conf;
 }
 
+#-----------------------------------------------------------------------
+
 configura_dns_generico(){
   echo -e "##################################"
   echo -e "# Configuracion Del Servicio DNS #"
   echo -e "##################################\n"
 
   # Configuracion de DNS
-  cp ./Template_Files/named.conf_template /etc/named.conf
+  cp ./Template_Files/generic/generic_named.conf_template /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
   sed -i "s/__DOMAIN__/$Domain/g" /etc/named.conf
   sed -i "s/__IPREV__/$IPRev/g" /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
+
+  cp ./Template_Files/generic/generic_resolv.conf_template /etc/resolv.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/resolv.conf
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/resolv.conf
   
   # Configuracion de la zona DNS
   cp ./Template_Files/generic/generic.zone_template /var/named/$Domain.zone
@@ -227,22 +251,141 @@ configura_dns_generico(){
   systemctl status named |grep 'Loaded\|Active'
 }
 
+#-----------------------------------------------------------------------
 
+configura_dhcp_generico(){
+  echo -e "\n###################################"
+  echo -e "# Configuracion Del Servicio DHCP #"
+  echo -e "###################################\n"
+
+  cp ./Template_Files/generic/generic_dhcp.conf_template /etc/dhcp/dhcpd.conf   
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NETWORKMASK__/$NetworkMask/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NETWORKMASKOCTAL__/$NetworkMaskOctal/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__HostName__/$HostName/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER1__/$NTPSERVER1/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER2__/$NTPSERVER2/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER3__/$NTPSERVER3/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER4__/$NTPSERVER4/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACMASTER1__/$MAC_Master_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACMASTER2__/$MAC_Master_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACMASTER3__/$MAC_Master_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACWORKER1__/$MAC_Worker_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACWORKER2__/$MAC_Worker_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACWORKER3__/$MAC_Worker_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACBOOTSTRAP__/$MAC_Bootstrap/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPMASTER1__/$IP_Master_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPMASTER2__/$IP_Master_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPMASTER3__/$IP_Master_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPWORKER1__/$IP_Worker_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPWORKER2__/$IP_Worker_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPWORKER3__/$IP_Worker_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPBOOTSTRAP__/$IP_Bootstrap/g" /etc/dhcp/dhcpd.conf
+
+  systemctl restart dhcpd
+  systemctl enable dhcpd
+  systemctl status dhcpd |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
+
+configura_http(){
+  echo -e "\n###################################"
+  echo -e "# Configuracion Del Servicio HTTP #"
+  echo -e "###################################\n"
+
+  echo -e "# Creacion de carpetas necesarias."
+
+  mkdir -p /var/www/html/ignition
+  mkdir -p /var/www/html/img
+  mkdir -p /var/www/html/pub/pxe
+
+  tree /var/www/html
+
+  echo -e "\n# Configuracion del servicio."
+  sed -i 's/Listen 80$/Listen 8080/g'  /etc/httpd/conf/httpd.conf
+  echo -e "\n# Copiando imagenes."
+  cp ${REGISTRY_BASE}/downloads/images/*rootfs* /var/www/html/img
+
+  echo -e "\n# Iniciando Servicio HTTP.\n"
+
+  systemctl restart httpd
+  systemctl enable httpd
+  systemctl status httpd |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
+
+configura_tftp_generico(){
+  echo -e "\n###################################"
+  echo -e "# Configuracion Del Servicio TFTP #"
+  echo -e "###################################\n"
+
+  mkdir -p /var/lib/tftpboot/rhcos/
+  mkdir -p /var/lib/tftpboot/pxelinux.cfg/
+
+  \cp -f /tftpboot/* /var/lib/tftpboot/.
+
+  cp -f ${REGISTRY_BASE}/downloads/images/${initramfs} /var/lib/tftpboot/rhcos/
+  cp -f ${REGISTRY_BASE}/downloads/images/${kernel} /var/lib/tftpboot/rhcos/
+
+  cp ./Template_Files/generic/generic_tftp_config_template /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP__/$IPHelper/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__KERNEL__/$kernel/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__INITRAMFS__/$initramfs/g" /var/lib/tftpboot/pxelinux.cfg/default
+
+  systemctl restart tftp
+  systemctl enable tftp
+  systemctl status tftp |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
+
+configura_haproxy_generico(){
+  echo -e "\n################################"
+  echo -e "# Creacion de carpetas HAProxy #"
+  echo -e "################################\n"
+
+  mkdir -p /etc/haproxy/certs
+
+  tree /etc/haproxy/
+
+  cp ./Template_Files/generic/generic_haproxy.cfg_template /etc/haproxy/haproxy.cfg
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/haproxy/haproxy.cfg
+  sed -i "s/__CLUSTERNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
+
+  sed -i '/After.*/a After=named.service' /usr/lib/systemd/system/haproxy.service
+
+  echo -e "\n# Iniciando Servicio HAProxy.\n"
+
+  systemctl daemon-reload
+  systemctl restart haproxy
+  systemctl enable haproxy
+  systemctl status haproxy |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
 
 main(){
   config_general;
-  #Variables Para Imagenes
+  # Variables Para Imagenes
   kernel=`ls /opt/registry/downloads/images/*kernel* |cut -d"/" -f 6`
   initramfs=`ls /opt/registry/downloads/images/*initram* | cut -d"/" -f 6`
   rootfs=`ls /opt/registry/downloads/images/*rootfs* | cut -d"/" -f 6`
   configura_dns_generico;
+  configura_dhcp_generico;
+  configura_http;
+  configura_tftp_generico;
+  configura_haproxy_generico;
 }
 
 main;
 
 exit;
 
-
+#-----------------------------------------------------------------------
 
 echo -e "\n##############################################"
 echo -e "# Configuracion Del Servicio DNS para ISILON #"
@@ -276,232 +419,9 @@ EOF
 systemctl restart named
 systemctl status named |grep 'Loaded\|Active'
 
-echo -e "\n###################################"
-echo -e "# Configuracion Del Servicio DHCP #"
-echo -e "###################################\n"
-
-cat > /etc/dhcp/dhcpd.conf << EOF
-#
-# VLAN ...($IPSegment/22)
-#
-subnet $IPSegment.0 netmask 255.255.252.0 {
-  option subnet-mask  255.255.252.0;
-  option routers   10.0.203.248;
-  option domain-name  "${Domain}";
-  option ntp-servers      ntpmad1.satm.maqtor, ntpmad2.satm.maqtor, ntpbcn1.satm.maqtor, ntpbcn2.satm.maqtor;
-  option domain-name-servers      $IPHelper;
-  option time-offset  1;next-server  ${HostName};
-  filename  "pxelinux.0";
-}group openshift4
-        {
-        host master-01 {
-                hardware ethernet        ${MAC_Master_01};
-                fixed-address            $IPSegment.6;
-                option host-name         "master-01.${Domain}";
-        }
-        host master-02 {
-                hardware ethernet        ${MAC_Master_02};
-                fixed-address            $IPSegment.7;
-                option host-name         "master-02.${Domain}";
-        }
-        host master-03 {
-                hardware ethernet        ${MAC_Master_03};
-                fixed-address            $IPSegment.8;
-                option host-name         "master-03.${Domain}";
-        }
-        host worker-01 {
-                hardware ethernet        ${MAC_Worker_01};
-                fixed-address            $IPSegment.9;
-                option host-name         "worker-01.${Domain}";
-        }
-        host worker-02 {
-                hardware ethernet        ${MAC_Worker_02};
-                fixed-address            $IPSegment.10;
-                option host-name         "worker-02.${Domain}";
-        }
-        host worker-03 {
-                hardware ethernet        ${MAC_Worker_03};
-                fixed-address            $IPSegment.11;
-                option host-name         "worker-03.${Domain}";
-        }
-        host bootstrap {
-                hardware ethernet        ${MAC_Bootstrap};
-                fixed-address            $IPSegment.5;
-                option host-name         "bootstrap.${Domain}";
-        }
-}
-EOF
-
-systemctl restart dhcpd
-systemctl enable dhcpd
-systemctl status dhcpd |grep 'Loaded\|Active'
-
-echo -e "\n###################################"
-echo -e "# Configuracion Del Servicio HTTP #"
-echo -e "###################################\n"
-
-echo -e "# Creacion de carpetas necesarias."
-
-mkdir -p /var/www/html/ignition
-mkdir -p /var/www/html/img
-mkdir -p /var/www/html/pub/pxe
-
-tree /var/www/html
-
-echo -e "\n# Configuracion del servicio."
-sed -i 's/Listen 80$/Listen 8080/g'  /etc/httpd/conf/httpd.conf
-echo -e "\n# Copiando imagenes."
-cp ${REGISTRY_BASE}/downloads/images/*rootfs* /var/www/html/img
-
-echo -e "\n# Iniciando Servicio HTTP.\n"
-
-systemctl restart httpd
-systemctl enable httpd
-systemctl status httpd |grep 'Loaded\|Active'
-
 #-----------------------------------------------------------------------
 
-mkdir -p /var/lib/tftpboot/rhcos/
-mkdir -p /var/lib/tftpboot/pxelinux.cfg/
 
-\cp -f /tftpboot/* /var/lib/tftpboot/.
-
-cp -f ${REGISTRY_BASE}/downloads/images/${initramfs} /var/lib/tftpboot/rhcos/
-cp -f ${REGISTRY_BASE}/downloads/images/${kernel} /var/lib/tftpboot/rhcos/
-
-cat > /var/lib/tftpboot/pxelinux.cfg/default << EOF
-default menu.c32
-prompt 0
-timeout 0
-menu title Openshift 4.x PXE Menu
-
-label INSTALL BOOTSTRAP
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/bootstrap.ign
-
-label INSTALL MASTER-1
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.6::$IPGateway:255.255.252.0:master-01.$Domain:enp1s0:none nameserver=$IPDns
-
-label INSTALL MASTER-2
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.7::$IPGateway:255.255.252.0:master-02.$Domain:enp1s0:none nameserver=$IPDns
-
-label INSTALL MASTER-3
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.8::$IPGateway:255.255.252.0:master-03.$Domain:enp1s0:none nameserver=$IPDns
-
-label INSTALL WORKER-1
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.9::$IPGateway:255.255.252.0:worker-01.$Domain:enp1s0:none nameserver=$IPDns
-
-label INSTALL WORKER-2
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.10::$IPGateway:255.255.252.0:worker-02.$Domain:enp1s0:none nameserver=$IPDns
-
-label INSTALL WORKER-3
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.11::$IPGateway:255.255.252.0:worker-03.$Domain:enp1s0:none nameserver=$IPDns
-
-EOF
-
-echo -e "\n# Iniciando Servicio TFTP.\n"
-
-systemctl restart tftp
-systemctl enable tftp
-systemctl status tftp |grep 'Loaded\|Active'
-
-#-----------------------------------------------------------------------
-
-echo -e "\n################################"
-echo -e "# Creacion de carpetas HAProxy #"
-echo -e "################################\n"
-
-mkdir -p /etc/haproxy/certs
-touch /etc/haproxy/certs/certs.lst
-
-tree /etc/haproxy/
-
-cat > /etc/haproxy/haproxy.cfg << EOF
-global
-  log         127.0.0.1 local2
-  pidfile     /var/run/haproxy.pid
-  maxconn     4000
-  daemon
-  ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
-  ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
-  ssl-default-bind-options ssl-min-ver TLSv1.2 no-tls-tickets
-  ca-base /etc/ssl/certs
-  crt-base /etc/ssl/private
-defaults
-  mode                    http
-  log                     global
-  option                  dontlognull
-  option http-server-close
-  option                  redispatch
-  retries                 3
-  timeout http-request    10s
-  timeout queue           3m
-  timeout connect         10s
-  timeout client          3m
-  timeout server          3m
-  timeout http-keep-alive 10s
-  timeout check           10s
-  maxconn                 3000
-frontend stats
-  bind *:1936
-  mode            http
-  log             global
-  maxconn 10
-  stats enable
-  stats hide-version
-  stats refresh 30s
-  stats show-node
-  stats show-desc Stats for ${ClusterName} cluster
-  stats auth admin:${ClusterName}
-  stats uri /stats
-listen api-server-6443
-  bind *:6443
-  mode tcp
-  server bootstrap bootstrap.${Domain}:6443 check inter 1s
-  server master-01 master-01.${Domain}:6443 check inter 1s
-  server master-02 master-02.${Domain}:6443 check inter 1s
-  server master-03 master-03.${Domain}:6443 check inter 1s
-listen machine-config-server-22623
-  bind *:22623
-  mode tcp
-  server bootstrap bootstrap.${Domain}:22623 check inter 1s
-  server master-01 master-01.${Domain}:22623 check inter 1s
-  server master-02 master-02.${Domain}:22623 check inter 1s
-  server master-03 master-03.${Domain}:22623 check inter 1s
-listen ingress-router-443
-  bind *:443
-  mode http
-  option forwardfor
-  http-request set-header X-Forwarded-Proto http if !{ ssl_fc }
-  http-request set-header X-Forwarded-Proto https if { ssl_fc }
-  http-request set-header X-Forwarded-Port 443
-  balance source
-  server worker-01 worker-01.${Domain}:443 check inter 1s
-  server worker-02 worker-02.${Domain}:443 check inter 1s
-  server worker-03 worker-03.${Domain}:443 check inter 1s
-listen ingress-router-80
-  bind *:80
-  mode tcp
-  balance source
-  server worker-01 worker-01.${Domain}:80 check inter 1s
-  server worker-02 worker-02.${Domain}:80 check inter 1s
-  server worker-03 worker-03.${Domain}:80 check inter 1s
-EOF
-
-sed -i '/After.*/a After=named.service' /usr/lib/systemd/system/haproxy.service
-
-echo -e "\n# Iniciando Servicio HAProxy.\n"
-
-systemctl daemon-reload
-systemctl restart haproxy
-systemctl enable haproxy
-systemctl status haproxy |grep 'Loaded\|Active'
 
 #Creacion de certificados.
 
