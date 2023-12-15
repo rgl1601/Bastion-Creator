@@ -6,15 +6,15 @@ x509_extensions = req_ext
 req_extensions = req_ext
 distinguished_name = dn
 [ dn ]
-C=$PAIS
-ST=$COMUNIDAD
-L=$PROVINCIA
-O=$EMPRESA
-OU=$DEPARTAMENTO
-emailAddress=$emailAddress
-CN = $HostName
+C=__PAIS__
+ST=__COMUNIDAD__
+L=__PROVINCIA__
+O=__EMPRESA__
+OU=__DEPARTAMENTO__
+emailAddress=__emailAddress__
+CN = __HostName__
 [ req_ext ]
 subjectAltName = @alt_names
 [alt_names]
-DNS.1 = $HostName
-DNS.2 = $ShortHostName
+DNS.1 = __HostName__
+DNS.2 = __ShortHostName__

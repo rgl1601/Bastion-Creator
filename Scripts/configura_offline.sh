@@ -19,6 +19,7 @@ WHITE='\033[01;37m'
 
 # Carga de Variables Desde Archivo.
 source ./full_config.conf
+
 # Comprobacion de los datos de las variables.
 echo -e "${RESTORE}"
 echo -e "#########################################"
@@ -63,6 +64,14 @@ if [[ $RESPUESTA != [Yy] ]];
 then
     exit;
 fi
+
+#-----------------------------------------------------------------------
+
+###########################
+#         BLOQUE          #
+#           DE            #
+#   FUNCIONES GENERALES   #
+###########################
 
 #-----------------------------------------------------------------------
 
@@ -218,6 +227,14 @@ config_general(){
 
 #-----------------------------------------------------------------------
 
+###########################
+#         BLOQUE          #
+#           DE            #
+#   FUNCIONES GENERICAS   #
+###########################
+
+#-----------------------------------------------------------------------
+
 configura_dns_generico(){
   echo -e "##################################"
   echo -e "# Configuracion Del Servicio DNS #"
@@ -368,6 +385,108 @@ configura_haproxy_generico(){
 
 #-----------------------------------------------------------------------
 
+####################
+#      BLOQUE      #
+#        DE        #
+#     FUNCIONES    #
+#        DE        #
+#   CERTIFICADOS   #
+#        Y         #
+#      MIRROR      #
+####################
+
+#-----------------------------------------------------------------------
+
+configura_certs(){
+  echo -e "\n############################"
+  echo -e "# Creacion de certificados #"
+  echo -e "############################\n"
+
+  # Creacion de certificados ssh.
+
+  if [ ! -f /root/.ssh/id_rsa.pub ];
+  then
+    ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa
+  fi
+
+  rm -rf $REGISTRY_BASE/certs/*
+
+  # Creacion del archivo /opt/registry/certs/csr_answer.txt
+  cp ./Template_Files/certificates/csr_answer.txt_template $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__PAIS__/$PAIS/g" $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__COMUNIDAD__/$COMUNIDAD/g" $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__PROVINCIA__/$PROVINCIA/g" $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__EMPRESA__/$EMPRESA/g" $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__DEPARTAMENTO__/$DEPARTAMENTO/g" $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__emailAddress__/$emailAddress/g" $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__HostName__/$HostName/g" $REGISTRY_BASE/certs/csr_answer.txt
+  sed -i "s/__ShortHostName__/$ShortHostname/g" $REGISTRY_BASE/certs/csr_answer.txt
+
+  # Creacion del archivo /opt/registry/certs/domain.ext
+  cp ./Template_Files/certificates/domain.ext_template $REGISTRY_BASE/certs/domain.ext
+  sed -i "s/__HostName__/$HostName/g" $REGISTRY_BASE/certs/domain.ext
+  sed -i "s/__ShortHostName__/$ShortHostname/g" $REGISTRY_BASE/certs/domain.ext
+
+  echo -e "# Creacion de ca.crt${GREEN}\n"
+
+  openssl req -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_BASE/certs/ca.key -x509 -subj "/C=$PAIS/ST=$COMUNIDAD/L=$PROVINCIA/O=$EMPRESA/OU=$DEPARTAMENTO/CN=$HostName" -days 36500 -out $REGISTRY_BASE/certs/ca.crt
+
+  echo -e "\n${RESTORE}# Creacion de domain.key y domain.csr${GREEN}\n"
+
+  openssl req -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_BASE/certs/domain.key -out $REGISTRY_BASE/certs/domain.csr -days 36500 -config <( cat $REGISTRY_BASE/certs/csr_answer.txt )
+
+  echo -e "\n${RESTORE}# Creacion de ca.key${GREEN}\n"
+
+  openssl x509 -req -days 36500 -in $REGISTRY_BASE/certs/domain.csr -CA $REGISTRY_BASE/certs/ca.crt -CAkey $REGISTRY_BASE/certs/ca.key -CAcreateserial -out $REGISTRY_BASE/certs/domain.crt -extfile $REGISTRY_BASE/certs/domain.ext
+
+  echo -e "\n${RESTORE}# Actualizacion de ca.crt general\n"
+
+  \cp -f ${REGISTRY_BASE}/certs/ca.crt ${REGISTRY_BASE}/certs/${HostName}.crt
+  rm -f /etc/pki/ca-trust/source/anchors/${HostName}.crt
+  cp ${REGISTRY_BASE}/certs/${HostName}.crt /etc/pki/ca-trust/source/anchors/
+  
+  update-ca-trust
+  update-ca-trust extract
+}
+
+#-----------------------------------------------------------------------
+
+configura_registry(){
+  echo -e "\n##############################"
+  echo -e "# Creacion de registry local #"
+  echo -e "##############################\n"
+
+  echo -e "${RESTORE}# Creacion de htpasswd${GREEN}\n"
+  htpasswd -bBc ${REGISTRY_BASE}/auth/htpasswd $HttpUser $HttpPasswd
+  echo -e "${RESTORE}"
+
+  # Creacion del pod del registry local.
+
+  cp ./Scripts/start_registry.sh ${REGISTRY_BASE}/downloads/tools/start_registry.sh
+  sed -i "s@__REGISTRYBASE__@$REGISTRY_BASE@g" ${REGISTRY_BASE}/downloads/tools/start_registry.sh
+
+  chmod a+x ${REGISTRY_BASE}/downloads/tools/start_registry.sh
+
+  echo -e "${RESTORE}# Carga de la imagen del registry.${GREEN}\n"
+
+  podman load < ${REGISTRY_BASE}/downloads/images/registry.tar
+
+  echo -e "${RESTORE}\n# Arranque del registry local.${GREEN}\n"
+
+  podman run --name my-registry --rm -d -p 5000:5000 -v ${REGISTRY_BASE}/data:/var/lib/registry:z -v ${REGISTRY_BASE}/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" -e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v ${REGISTRY_BASE}/certs:/certs:z -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key docker.io/library/registry:2
+  
+  podman ps
+  echo -e "${RESTORE}"
+}
+
+#-----------------------------------------------------------------------
+
+####################
+#      BLOQUE      #
+#        DE        #
+#   FUNCION MAIN   #
+####################
+
 main(){
   config_general;
   # Variables Para Imagenes
@@ -379,6 +498,8 @@ main(){
   configura_http;
   configura_tftp_generico;
   configura_haproxy_generico;
+  configura_certs;
+  configura_registry;
 }
 
 main;
@@ -386,172 +507,17 @@ main;
 exit;
 
 #-----------------------------------------------------------------------
-
-echo -e "\n##############################################"
-echo -e "# Configuracion Del Servicio DNS para ISILON #"
-echo -e "##############################################\n"
-
-cat >> /etc/named.conf << EOF
-zone "neo.satm.maqtor" in {
-      type master;
-      file "neo.satm.maqtor.zone";
-};
-
-EOF
-
-cat >> /var/named/neo.satm.maqtor.zone << EOF
-\$TTL 1W
-@       IN      SOA     nfs.neo.satm.maqtor.        root (
-                        2019070700      ; serial
-                        3H              ; refresh (3 hours)
-                        30M             ; retry (30 minutes)
-                        2W              ; expiry (2 weeks)
-                        1W )            ; minimum (1 week)
-        IN      NS      nfs.neo.satm.maqtor.
-;
-; NS'S AUTHORITATIVE FOR PARENT DOMAIN:
-nfs.neo.satm.maqtor.               NS      nfs.neo.satm.maqtor.
-;
-; A RECORDS FOR THE PARENT DOMAIN'S AUTHORITATIVE NS'S:
-nfs.neo.satm.maqtor.       A       10.0.197.100
-EOF
-
-systemctl restart named
-systemctl status named |grep 'Loaded\|Active'
-
+#-----------------------------------------------------------------------
+#-----------------------------------------------------------------------
 #-----------------------------------------------------------------------
 
-
-
-#Creacion de certificados.
-
-if [ ! -f /root/.ssh/id_rsa.pub ];
-then
-ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa
-fi
-
-
-rm -rf $REGISTRY_BASE/certs/*
-
-echo -e "\n############################"
-echo -e "# Creacion de certificados #"
-echo -e "############################\n"
-
-#Creacion del archivo /opt/registry/certs/csr_answer.txt
-cat > $REGISTRY_BASE/certs/csr_answer.txt << EOF
-[req]
-default_bits = 4096
-prompt = no
-default_md = sha256
-x509_extensions = req_ext
-req_extensions = req_ext
-distinguished_name = dn
-[ dn ]
-C=$PAIS
-ST=$COMUNIDAD
-L=$PROVINCIA
-O=$EMPRESA
-OU=$DEPARTAMENTO
-emailAddress=$emailAddress
-CN = $HostName
-[ req_ext ]
-subjectAltName = @alt_names
-[alt_names]
-DNS.1 = $HostName
-DNS.2 = $ShortHostName
-EOF
-
-#Creacion del archivo /opt/registry/certs/domain.ext
-cat > $REGISTRY_BASE/certs/domain.ext << EOF
-authorityKeyIdentifier=keyid,issuer
-basicConstraints=CA:FALSE
-keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-subjectAltName = @alt_names
-[alt_names]
-DNS.1 = $HostName
-DNS.2 = $ShortHostName
-EOF
-
-echo -e "# Creacion de ca.crt"
-echo -e "${GREEN}"
-
-openssl req -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_BASE/certs/ca.key -x509 -subj "/C=$PAIS/ST=$COMUNIDAD/L=$PROVINCIA/O=$EMPRESA/OU=$DEPARTAMENTO/CN=$HostName" -days 36500 -out $REGISTRY_BASE/certs/ca.crt
-
-echo -e "${RESTORE}"
-echo -e "# Creacion de domain.key y domain.csr"
-echo -e "${GREEN}"
-
-openssl req -newkey rsa:4096 -nodes -sha256 -keyout $REGISTRY_BASE/certs/domain.key -out $REGISTRY_BASE/certs/domain.csr -days 36500 -config <( cat $REGISTRY_BASE/certs/csr_answer.txt )
-
-echo -e "${RESTORE}"
-echo -e "# Creacion de ca.key"
-echo -e "${GREEN}"
-
-openssl x509 -req -days 36500 -in $REGISTRY_BASE/certs/domain.csr -CA $REGISTRY_BASE/certs/ca.crt -CAkey $REGISTRY_BASE/certs/ca.key -CAcreateserial -out $REGISTRY_BASE/certs/domain.crt -extfile $REGISTRY_BASE/certs/domain.ext
-
-echo -e "${RESTORE}"
-echo -e "# Actualizacion de ca.crt general"
-
-\cp -f ${REGISTRY_BASE}/certs/ca.crt ${REGISTRY_BASE}/certs/${HostName}.crt
-rm -f /etc/pki/ca-trust/source/anchors/${HostName}.crt
-cp ${REGISTRY_BASE}/certs/${HostName}.crt /etc/pki/ca-trust/source/anchors/
-update-ca-trust
-update-ca-trust extract
-
-echo -e "${RESTORE}"
-echo -e "# Creacion de htpasswd"
-echo -e "${GREEN}"
-
-htpasswd -bBc ${REGISTRY_BASE}/auth/htpasswd $HttpUser $HttpPasswd
-echo -e "${RESTORE}"
-
-echo -e "##############################"
-echo -e "# Creacion de registry local #"
-echo -e "##############################"
-
-#Creacion del pod del registry local.
-echo -e "${GREEN}"
-
-echo 'podman run --name my-registry --rm -d -p 5000:5000 \
--v ${REGISTRY_BASE}/data:/var/lib/registry:z \
--v ${REGISTRY_BASE}/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" \
--e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" \
--e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" \
--e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
--v ${REGISTRY_BASE}/certs:/certs:z \
--e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
--e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
-docker.io/library/registry:2' > ${REGISTRY_BASE}/downloads/tools/start_registry.sh
-
-chmod a+x ${REGISTRY_BASE}/downloads/tools/start_registry.sh
-
-echo -e "${RESTORE}# Carga de la imagen del registry.${GREEN}\n"
-
-podman load < ${REGISTRY_BASE}/downloads/images/registry.tar
-
-echo -e "${RESTORE}\n# Arranque del registry local.${GREEN}\n"
-
-podman run --name my-registry --rm -d -p 5000:5000 \
--v ${REGISTRY_BASE}/data:/var/lib/registry:z \
--v ${REGISTRY_BASE}/auth:/auth:z -e "REGISTRY_AUTH=htpasswd" \
--e "REGISTRY_AUTH_HTPASSWD_REALM=Registry" \
--e "REGISTRY_HTTP_SECRET=ALongRandomSecretForRegistry" \
--e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
--v ${REGISTRY_BASE}/certs:/certs:z \
--e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
--e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
-docker.io/library/registry:2
-
-podman ps
-echo -e "${RESTORE}"
-
-#Descarga de Imagenes y Paquetes necesarios de RedHat.
+# Descarga de Imagenes y Paquetes necesarios de RedHat.
 
 echo -e "################################"
 echo -e "# Carga de imagenes de RedHat. #"
 echo -e "################################\n"
 
-#Definicion de variables para creacion de mirror.
+# Definicion de variables para creacion de mirror.
 
 cd ${REGISTRY_BASE}/downloads/secrets/
 cat > pull-secret.json << EOF 
@@ -633,3 +599,41 @@ exit;
 echo -e "\n${GREEN}#######################"
 echo -e "# Proceso Completado. #"
 echo -e "#######################\n${RESTORE}"
+
+
+
+#-----------------------------------------------------------------------
+
+echo -e "\n##############################################"
+echo -e "# Configuracion Del Servicio DNS para ISILON #"
+echo -e "##############################################\n"
+
+cat >> /etc/named.conf << EOF
+zone "neo.satm.maqtor" in {
+      type master;
+      file "neo.satm.maqtor.zone";
+};
+
+EOF
+
+cat >> /var/named/neo.satm.maqtor.zone << EOF
+\$TTL 1W
+@       IN      SOA     nfs.neo.satm.maqtor.        root (
+                        2019070700      ; serial
+                        3H              ; refresh (3 hours)
+                        30M             ; retry (30 minutes)
+                        2W              ; expiry (2 weeks)
+                        1W )            ; minimum (1 week)
+        IN      NS      nfs.neo.satm.maqtor.
+;
+; NS'S AUTHORITATIVE FOR PARENT DOMAIN:
+nfs.neo.satm.maqtor.               NS      nfs.neo.satm.maqtor.
+;
+; A RECORDS FOR THE PARENT DOMAIN'S AUTHORITATIVE NS'S:
+nfs.neo.satm.maqtor.       A       10.0.197.100
+EOF
+
+systemctl restart named
+systemctl status named |grep 'Loaded\|Active'
+
+#-----------------------------------------------------------------------
