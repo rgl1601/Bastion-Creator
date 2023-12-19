@@ -481,6 +481,65 @@ configura_registry(){
 
 #-----------------------------------------------------------------------
 
+carga_imagenes(){
+  echo -e "################################"
+  echo -e "# Carga de imagenes de RedHat. #"
+  echo -e "################################\n"
+
+  # Definicion de secrets para la correcta carga de imágenes.
+  cp pull-secret.json ${REGISTRY_BASE}/downloads/secrets/pull-secret.json
+  cat ${REGISTRY_BASE}/downloads/secrets/pull-secret.json | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" > ${REGISTRY_BASE}/downloads/secrets/pull-secret-bundle.json
+  echo '{ "auths": {}}' | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" | jq -c .> ${REGISTRY_BASE}/downloads/secrets/pull-secret-registry.json
+
+  tar -xzvf ${REGISTRY_BASE}/downloads/tools/openshift-client*.tar.gz -C /usr/local/bin
+
+  oc image mirror -a ${REGISTRY_BASE}/downloads/secrets/pull-secret-registry.json --from-dir=/opt/mirror "file://openshift/release:${imageVersion}*" ${HostName}:5000/ocp/openshift4
+
+  tar -xzvf ${REGISTRY_BASE}/downloads/tools/helm-linux-amd64.tar.gz -C /tmp
+  \cp /tmp/helm-linux-amd64 /usr/local/bin/helm
+}
+
+#-----------------------------------------------------------------------
+
+configura_install_config(){
+  echo -e "################################"
+  echo -e "# CONFIGURACION INSTALL-CONFIG #"
+  echo -e "################################\n"
+
+  cp ./Template_Files/install-config.yaml_template ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  # Sustitución de variables.
+  sed -i "s/__DOMAIN__/$Domain/g" ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  sed -i "s/__CLUSTERNAME__/$ClusterName/g" ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  sed -i "s/__IPSegment__/$IPSegment/g" ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  sed -i "s/__NetworkMaskOctal__/$NetworkMaskOctal/g" ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  # Adicion del pull-secret, clave ssh y certificados para una correcta instalacion.
+  echo -n "pullSecret: '" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml && echo '{ "auths": {}}' | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" | jq -c . | sed "s/$/\'/g" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  echo -n "sshKey: '" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml && cat ~/.ssh/id_rsa.pub | sed "s/$/\'/g" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  echo "additionalTrustBundle: |" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  cat ${REGISTRY_BASE}/certs/ca.crt | sed 's/^/\ \ \ \ \ /g' >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+  cat ${REGISTRY_BASE}/downloads/secrets/mirror-output.txt | grep -A7 imageContentSources >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
+}
+
+#-----------------------------------------------------------------------
+
+configura_ignition_files(){
+  cp ./Scripts/clean.sh ${REGISTRY_BASE}/downloads/tools/clean.sh
+  sed -i "s@__REGISTRYBASE__@$REGISTRY_BASE@g" ${REGISTRY_BASE}/downloads/tools/clean.sh
+
+  chmod 700 ${REGISTRY_BASE}/downloads/tools/clean.sh
+
+  rm -rf /root/cluster
+  mkdir /root/cluster
+  
+  cp ${REGISTRY_BASE}/downloads/tools/install-config.yaml /root/cluster
+  ${REGISTRY_BASE}/downloads/tools/openshift-install create manifests --dir=/root/cluster
+  ${REGISTRY_BASE}/downloads/tools/openshift-install create ignition-configs --dir=/root/cluster
+  cp /root/cluster/*ign /var/www/html/ignition
+  chmod o+r /var/www/html/ignition/*ign
+}
+
+#-----------------------------------------------------------------------
+
 ####################
 #      BLOQUE      #
 #        DE        #
@@ -500,140 +559,15 @@ main(){
   configura_haproxy_generico;
   configura_certs;
   configura_registry;
+  carga_imagenes;
+  configura_install_config;
+  configura_ignition_files;
 }
 
 main;
-
-exit;
-
-#-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-#-----------------------------------------------------------------------
-
-# Descarga de Imagenes y Paquetes necesarios de RedHat.
-
-echo -e "################################"
-echo -e "# Carga de imagenes de RedHat. #"
-echo -e "################################\n"
-
-# Definicion de variables para creacion de mirror.
-
-cd ${REGISTRY_BASE}/downloads/secrets/
-cat > pull-secret.json << EOF 
-${SECRET}
-EOF
-REG_SECRET=`echo -n "${HttpUser}:${HttpPasswd}" | base64 -w0`
-cat pull-secret.json | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" > pull-secret-bundle.json
-echo '{ "auths": {}}' | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" | jq -c .> pull-secret-registry.json
-LOCAL_REGISTRY=${HostName}':5000'
-OCP_RELEASE=${OCP_RELEASE}"-x86_64" 
-LOCAL_REPOSITORY='ocp/openshift4'
-PRODUCT_REPO='openshift-release-dev'
-LOCAL_SECRET_JSON=${REGISTRY_BASE}"/downloads/secrets/pull-secret-bundle.json"
-RELEASE_NAME="ocp-release"
-
-tar -xzvf ${REGISTRY_BASE}/downloads/tools/openshift-client*.tar.gz -C /usr/local/bin
-
-oc image mirror -a ${REGISTRY_BASE}/downloads/secrets/pull-secret-registry.json --from-dir=/opt/mirror "file://openshift/release:${imageVersion}*" ${HostName}:5000/ocp/openshift4
-
-tar -xzvf ${REGISTRY_BASE}/downloads/tools/helm-linux-amd64.tar.gz -C /tmp
-\cp /tmp/helm-linux-amd64 /usr/local/bin/helm
-
-
-cat > ${REGISTRY_BASE}/downloads/tools/install-config.yaml << EOF
-apiVersion: v1
-baseDomain: `hostname | cut -d. -f3-10`
-controlPlane:
-  name: master
-  hyperthreading: Enabled
-  replicas: 3
-compute:
-- name: worker
-  hyperthreading: Enabled
-  replicas: 3
-metadata:
-  name: `hostname | cut -d. -f2-2`
-networking:
-  clusterNetworks:
-  - cidr: 10.128.0.0/14
-    hostPrefix: 23
-  machineNetwork:
-  - cidr: $IPSegment.0/22
-  networkType: OVNKubernetes
-  serviceNetwork:
-  - 10.1.0.0/16
-platform:
-  none: {}
-fips: false
-EOF
-
-echo -n "pullSecret: '" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml && echo '{ "auths": {}}' | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" | jq -c . | sed "s/$/\'/g" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
-echo -n "sshKey: '" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml && cat ~/.ssh/id_rsa.pub | sed "s/$/\'/g" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
-echo "additionalTrustBundle: |" >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
-cat ${REGISTRY_BASE}/certs/ca.crt | sed 's/^/\ \ \ \ \ /g' >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
-cat ${REGISTRY_BASE}/downloads/secrets/mirror-output.txt | grep -A7 imageContentSources >> ${REGISTRY_BASE}/downloads/tools/install-config.yaml
-
-cat > ${REGISTRY_BASE}/downloads/tools/clean.sh << EOF
-rm -rf /root/cluster
-mkdir /root/cluster
-cp ${REGISTRY_BASE}/downloads/tools/install-config.yaml /root/cluster
-./openshift-install create manifests --dir=/root/cluster
-./openshift-install create ignition-configs --dir=/root/cluster
-cp /root/cluster/*ign /var/www/html/ignition
-chmod o+r /var/www/html/ignition/*ign
-EOF
-
-chmod 700 ${REGISTRY_BASE}/downloads/tools/clean.sh
-
-rm -rf /root/cluster
-mkdir /root/cluster
-cp ${REGISTRY_BASE}/downloads/tools/install-config.yaml /root/cluster
-${REGISTRY_BASE}/downloads/tools/openshift-install create manifests --dir=/root/cluster
-${REGISTRY_BASE}/downloads/tools/openshift-install create ignition-configs --dir=/root/cluster
-cp /root/cluster/*ign /var/www/html/ignition
-chmod o+r /var/www/html/ignition/*ign
-
-exit;
 
 echo -e "\n${GREEN}#######################"
 echo -e "# Proceso Completado. #"
 echo -e "#######################\n${RESTORE}"
 
-
-
-#-----------------------------------------------------------------------
-
-echo -e "\n##############################################"
-echo -e "# Configuracion Del Servicio DNS para ISILON #"
-echo -e "##############################################\n"
-
-cat >> /etc/named.conf << EOF
-zone "neo.satm.maqtor" in {
-      type master;
-      file "neo.satm.maqtor.zone";
-};
-
-EOF
-
-cat >> /var/named/neo.satm.maqtor.zone << EOF
-\$TTL 1W
-@       IN      SOA     nfs.neo.satm.maqtor.        root (
-                        2019070700      ; serial
-                        3H              ; refresh (3 hours)
-                        30M             ; retry (30 minutes)
-                        2W              ; expiry (2 weeks)
-                        1W )            ; minimum (1 week)
-        IN      NS      nfs.neo.satm.maqtor.
-;
-; NS'S AUTHORITATIVE FOR PARENT DOMAIN:
-nfs.neo.satm.maqtor.               NS      nfs.neo.satm.maqtor.
-;
-; A RECORDS FOR THE PARENT DOMAIN'S AUTHORITATIVE NS'S:
-nfs.neo.satm.maqtor.       A       10.0.197.100
-EOF
-
-systemctl restart named
-systemctl status named |grep 'Loaded\|Active'
-
-#-----------------------------------------------------------------------
+exit;
