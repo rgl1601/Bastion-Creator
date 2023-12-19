@@ -18,7 +18,7 @@ LCYAN='\033[01;36m'
 WHITE='\033[01;37m'
 
 # Carga de Variables Desde Archivo.
-source ../full_config.conf
+source ./full_config.conf
 
 #Comprobacion de los datos de las variables.
 echo -e "${RESTORE}"
