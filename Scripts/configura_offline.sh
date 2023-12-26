@@ -1,22 +1,5 @@
 #!/bin/bash
 
-# Lista de colores para el terminal
-RESTORE='\033[0m'
-RED='\033[00;31m'
-GREEN='\033[00;32m'
-YELLOW='\033[00;33m'
-BLUE='\033[00;34m'
-PURPLE='\033[00;35m'
-CYAN='\033[00;36m'
-LIGHTGRAY='\033[00;37m'
-LRED='\033[01;31m'
-LGREEN='\033[01;32m'
-LYELLOW='\033[01;33m'
-LBLUE='\033[01;34m'
-LPURPLE='\033[01;35m'
-LCYAN='\033[01;36m'
-WHITE='\033[01;37m'
-
 # Carga de Variables Desde Archivo.
 source ./full_config.conf
 
@@ -552,16 +535,48 @@ main(){
   kernel=`ls /opt/registry/downloads/images/*kernel* |cut -d"/" -f 6`
   initramfs=`ls /opt/registry/downloads/images/*initram* | cut -d"/" -f 6`
   rootfs=`ls /opt/registry/downloads/images/*rootfs* | cut -d"/" -f 6`
-  configura_dns_generico;
-  configura_dhcp_generico;
-  configura_http;
-  configura_tftp_generico;
-  configura_haproxy_generico;
-  configura_certs;
-  configura_registry;
-  carga_imagenes;
-  configura_install_config;
-  configura_ignition_files;
+  case $TYPE in
+    generic)
+    configura_dns_generico
+    configura_dhcp_generico
+    configura_http
+    configura_tftp_generico
+    configura_haproxy_generico
+    configura_certs
+    configura_registry
+    carga_imagenes
+    configura_install_config
+    configura_ignition_files
+    ;;
+    itec)
+    configura_dns_generico
+    configura_dhcp_generico
+    configura_http
+    configura_tftp_generico
+    configura_haproxy_generico
+    configura_certs
+    configura_registry
+    carga_imagenes
+    configura_install_config
+    configura_ignition_files
+    ;;
+    neo)
+    configura_dns_generico
+    configura_dhcp_generico
+    configura_http
+    configura_tftp_generico
+    configura_haproxy_generico
+    configura_certs
+    configura_registry
+    carga_imagenes
+    configura_install_config
+    configura_ignition_files
+    ;;
+    *)
+    echo -e "Tipo De Instalación Incorrecto.\nLos tipos soportados son: ${GREEN}generic, itec o neo.${RESTORE}"
+    ;;
+  esac
+
 }
 
 main;

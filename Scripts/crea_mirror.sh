@@ -1,22 +1,5 @@
 #!/bin/bash
 
-#Lista de colores para el terminal
-RESTORE='\033[0m'
-RED='\033[00;31m'
-GREEN='\033[00;32m'
-YELLOW='\033[00;33m'
-BLUE='\033[00;34m'
-PURPLE='\033[00;35m'
-CYAN='\033[00;36m'
-LIGHTGRAY='\033[00;37m'
-LRED='\033[01;31m'
-LGREEN='\033[01;32m'
-LYELLOW='\033[01;33m'
-LBLUE='\033[01;34m'
-LPURPLE='\033[01;35m'
-LCYAN='\033[01;36m'
-WHITE='\033[01;37m'
-
 # Carga de Variables Desde Archivo.
 source ./full_config.conf
 
@@ -70,9 +53,6 @@ echo -e "${RESTORE}Hostname completo:${GREEN} `hostname`"
 echo -e "${RESTORE}Hostname corto:${GREEN} `hostname -s`"
 echo -e "${RESTORE}Dominio:${GREEN} `hostname -d`"
 echo -e "${RESTORE}"
-
-#Variable para guardar la IP asignada a la máquina.
-IPHelper=`ip -4 addr show $EthernetBoot |grep inet |cut -c 10- |cut -f1 -d"/"|grep -v "127.0.0.1"`
 
 echo -e "\n###########################"
 echo -e "# Actualizando /etc/hosts #"
@@ -234,7 +214,7 @@ wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OCP_RELEASE}/op
 
 echo -e "${RESTORE}# Extraccion de tooles de OC.\n${GREEN}"
 tar -xvzf $REGISTRY_BASE/downloads/tools/openshift-client-linux-${OCP_RELEASE}.tar.gz -C /usr/local/bin
-OCP_ISO_VERSION=${CoreOSVer}/${CoreOSVer}.${CoreOSSubVer}
+
 
 echo -e "\n${RESTORE}# Descarga de RedHat CoreOS.\n${GREEN}"
 wget https://mirror.openshift.com/pub/openshift-v4/dependencies/rhcos/${OCP_ISO_VERSION}/rhcos-${CoreOSVer}.${CoreOSSubVer}-x86_64-live-rootfs.x86_64.img -P ${REGISTRY_BASE}/downloads/images/
@@ -259,28 +239,21 @@ cd ${REGISTRY_BASE}/downloads/secrets/
 cat > pull-secret.json << EOF 
 ${SECRET}
 EOF
-REG_SECRET=`echo -n "${HttpUser}:${HttpPasswd}" | base64 -w0`
 cat pull-secret.json | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" > pull-secret-bundle.json
 echo '{ "auths": {}}' | jq '.auths += {"'${HostName}':5000": {"auth": "REG_SECRET","email": "'${emailAddress}'"}}' | sed "s/REG_SECRET/$REG_SECRET/" | jq -c .> pull-secret-registry.json
-LOCAL_REGISTRY=${HostName}':5000'
-OCP_RELEASE=${OCP_RELEASE}"-x86_64" 
-LOCAL_REPOSITORY='ocp/openshift4'
-PRODUCT_REPO='openshift-release-dev'
-LOCAL_SECRET_JSON=${REGISTRY_BASE}"/downloads/secrets/pull-secret-bundle.json"
-RELEASE_NAME="ocp-release"
 
 echo -e "######################################"
 echo -e "# Descarga de imagenes de OpenShift. #"
 echo -e "######################################\n"
 
 oc adm -a ${LOCAL_SECRET_JSON} release mirror \
---from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE} \
+--from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE_ARCH} \
 --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
---to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE} \
+--to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE_ARCH} \
 --to-dir=/opt/mirror > ${REGISTRY_BASE}/downloads/secrets/mirror-output.txt
 
 oc adm -a ${LOCAL_SECRET_JSON} release mirror \
---from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE} \
+--from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${OCP_RELEASE_ARCH} \
 --to-dir=/opt/mirror
 
 cd ${REGISTRY_BASE}/downloads/tools/
@@ -289,7 +262,7 @@ echo -e "\n##############################################"
 echo -e "# Descarga de instalador local de OpenShift. #"
 echo -e "##############################################\n"
 
-oc adm -a ${LOCAL_SECRET_JSON} release extract --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE}"
+oc adm -a ${LOCAL_SECRET_JSON} release extract --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${OCP_RELEASE_ARCH}"
 
 echo -e "\n###############################################"
 echo -e "# Guardado de Registry para uso desconectado. #"
@@ -307,8 +280,25 @@ cd /
 cp /etc/redhat-release /opt
 VERSION_OS=`cat /etc/redhat-release|cut -d ' ' -f6 `
 fecha=`date +%Y%m%d%H%M%S`
-tar --exclude ${REGISTRY_BASE}/data/*  -vcf ${VERSION_OS}-${fecha}-${OCP_RELEASE}-registry.tar /opt
+tar --exclude ${REGISTRY_BASE}/data/*  -vcf ${VERSION_OS}-${fecha}-${OCP_RELEASE_ARCH}-registry.tar /opt
 
-echo -e "\n${GREEN}#######################"
-echo -e "# Proceso Completado. #"
-echo -e "#######################\n${RESTORE}"
+display_mensaje(){
+    echo -e "\n${GREEN}#######################"
+    echo -e "# Proceso Completado. #"
+    echo -e "#######################\n${RESTORE}"
+}
+
+case $TYPE in
+    generic)
+    display_mensaje
+    ;;
+    itec)
+    display_mensaje
+    ;;
+    neo)
+    display_mensaje
+    ;;
+    *)
+    echo -e "Tipo De Instalación Incorrecto.\nLos tipos soportados son: ${GREEN}generic, itec o neo.${RESTORE}"
+    ;;
+esac
