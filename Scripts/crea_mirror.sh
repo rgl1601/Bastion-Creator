@@ -288,6 +288,19 @@ display_mensaje(){
     echo -e "#######################\n${RESTORE}"
 }
 
+descarga_operadores(){
+    registry_local=`podman ps -a |grep -v NAME| cut -d" " -f 1`
+    podman stop $registry_local
+    podman rm $registry_local
+    podman run -d -p50051:50051 -it registry.redhat.io/redhat/redhat-operatorindex:v4.14
+    oc-mirror --config=./Template_Files/neo/full.yaml file://output-dir
+}
+descarga_driver_csi(){
+    yum install git
+    git clone https://github.com/dell/dell-csi-operator.git /root/dell-csi-operator
+    bash /root/dell-csi-operator/scripts/csi-offline-bundle.sh -c
+}
+
 case $TYPE in
     generic)
     display_mensaje
@@ -296,6 +309,8 @@ case $TYPE in
     display_mensaje
     ;;
     neo)
+    descarga_operadores
+    descarga_driver_csi
     display_mensaje
     ;;
     *)

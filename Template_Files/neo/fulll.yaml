@@ -1,0 +1,26 @@
+apiVersion: mirror.openshift.io/v1alpha2
+kind: ImageSetConfiguration
+mirror:
+  operators:
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.14
+      packages:
+        - name: kubevirt-hyperconverged
+          channels:
+            - name: stable
+              minversion: 4.13.0
+              maxversion: 4.13.0
+        - name: mtv-operator
+          channels:
+            - name: release-v2.5
+              minversion: 2.5.2
+              maxversion: 2.5.2
+    - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
+      packages:
+        - name: kubernetes-nmstate-operator
+          channels:
+            - name: stable
+              minversion: 4.13.0-202307242035
+              maxversion: 4.13.0-202307242035
+storageConfig:
+  local:
+    path: metadata 
