@@ -262,30 +262,27 @@ configura_dns_neo(){
   cp ./Template_Files/neo/neo_named.conf_template /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
   sed -i "s/__DOMAIN__/$Domain/g" /etc/named.conf
-  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/named.conf
   sed -i "s/__IPREV__/$IPRev/g" /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
 
   cp ./Template_Files/neo/neo_resolv.conf_template /etc/resolv.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/resolv.conf
   sed -i "s/__DOMAIN__/$Domain/g" /etc/resolv.conf
-  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/resolv.conf
 
   # Configuracion de la zona DNS
-  cp ./Template_Files/neo/neo.zone_template /var/named/$ClusterName.$Domain.zone
-  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$ClusterName.$Domain.zone
-  sed -i "s/__IP__/$IPHelper/g" /var/named/$ClusterName.$Domain.zone
-  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$ClusterName.$Domain.zone
-  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$ClusterName.$Domain.zone
-  sed -i "s/__OCPNAME__/$ClusterName/g" /var/named/$ClusterName.$Domain.zone
+  cp ./Template_Files/neo/neo.zone_template /var/named/$Domain.zone
+  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.zone
+  sed -i "s/__IP__/$IPHelper/g" /var/named/$Domain.zone
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$Domain.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$Domain.zone
 
 
   # Configuracion de la zona reversa.
   cp ./Template_Files/neo/neo.rev.zone_template /var/named/$Domain.rev.zone
-  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$ClusterName.$Domain.rev.zone
-  sed -i "s/__IPREV__/$IPRev/g" /var/named/$ClusterName.$Domain.rev.zone
-  sed -i "s/__OCPNAME__/$IPRev/g" /var/named/$ClusterName.$Domain.rev.zone
-  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$ClusterName.$Domain.rev.zone
+  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.rev.zone
+  sed -i "s/__IPREV__/$IPRev/g" /var/named/$Domain.rev.zone
+  sed -i "s/__OCPNAME__/$IPRev/g" /var/named/$Domain.rev.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$Domain.rev.zone
   
   systemctl restart named
   systemctl enable named
@@ -339,7 +336,6 @@ configura_dhcp_neo(){
 
   cp ./Template_Files/neo/neo_dhcp.conf_template /etc/dhcp/dhcpd.conf   
   sed -i "s/__DOMAIN__/$Domain/g" /etc/dhcp/dhcpd.conf
-  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASK__/$NetworkMask/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASKOCTAL__/$NetworkMaskOctal/g" /etc/dhcp/dhcpd.conf
@@ -490,7 +486,6 @@ configura_haproxy_neo(){
   cp ./Template_Files/neo/neo_haproxy.cfg_template /etc/haproxy/haproxy.cfg
   sed -i "s/__DOMAIN__/$Domain/g" /etc/haproxy/haproxy.cfg
   sed -i "s/__CLUSTERNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
-  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
   sed -i '/After.*/a After=named.service' /usr/lib/systemd/system/haproxy.service
 
   echo -e "\n# Iniciando Servicio HAProxy.\n"

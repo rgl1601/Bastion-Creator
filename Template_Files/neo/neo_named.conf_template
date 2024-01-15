@@ -57,13 +57,13 @@ zone "." IN {
 include "/etc/named.rfc1912.zones";
 include "/etc/named.root.key";
 
-zone "__OCPNAME__.__DOMAIN__" in {
+zone "__DOMAIN__" in {
       type master;
-      file "__OCPNAME__.__DOMAIN__.zone";
+      file "__DOMAIN__.zone";
 };
 
 zone "__IPREV__.in-addr.arpa" {
       type master;
-      file "__OCPNAME__.__DOMAIN__.rev.zone";
+      file "__DOMAIN__.rev.zone";
       allow-update { none; };
 };

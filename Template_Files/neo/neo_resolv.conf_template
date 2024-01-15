@@ -1,2 +1,2 @@
-search __OCPNAME__.__DOMAIN__
+search __DOMAIN__
 nameserver __IP__
