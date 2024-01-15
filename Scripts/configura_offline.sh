@@ -253,6 +253,47 @@ configura_dns_generico(){
 
 #-----------------------------------------------------------------------
 
+configura_dns_neo(){
+  echo -e "##################################"
+  echo -e "# Configuracion Del Servicio DNS #"
+  echo -e "##################################\n"
+
+  # Configuracion de DNS
+  cp ./Template_Files/neo/neo_named.conf_template /etc/named.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/named.conf
+  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/named.conf
+  sed -i "s/__IPREV__/$IPRev/g" /etc/named.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
+
+  cp ./Template_Files/neo/neo_resolv.conf_template /etc/resolv.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/resolv.conf
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/resolv.conf
+  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/resolv.conf
+
+  # Configuracion de la zona DNS
+  cp ./Template_Files/neo/neo.zone_template /var/named/$ClusterName.$Domain.zone
+  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$ClusterName.$Domain.zone
+  sed -i "s/__IP__/$IPHelper/g" /var/named/$ClusterName.$Domain.zone
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$ClusterName.$Domain.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$ClusterName.$Domain.zone
+  sed -i "s/__OCPNAME__/$ClusterName/g" /var/named/$ClusterName.$Domain.zone
+
+
+  # Configuracion de la zona reversa.
+  cp ./Template_Files/neo/neo.rev.zone_template /var/named/$Domain.rev.zone
+  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$ClusterName.$Domain.rev.zone
+  sed -i "s/__IPREV__/$IPRev/g" /var/named/$ClusterName.$Domain.rev.zone
+  sed -i "s/__OCPNAME__/$IPRev/g" /var/named/$ClusterName.$Domain.rev.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$ClusterName.$Domain.rev.zone
+  
+  systemctl restart named
+  systemctl enable named
+  systemctl status named |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
+
 configura_dhcp_generico(){
   echo -e "\n###################################"
   echo -e "# Configuracion Del Servicio DHCP #"
@@ -260,6 +301,45 @@ configura_dhcp_generico(){
 
   cp ./Template_Files/generic/generic_dhcp.conf_template /etc/dhcp/dhcpd.conf   
   sed -i "s/__DOMAIN__/$Domain/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IP__/$IPHelper/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NETWORKMASK__/$NetworkMask/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NETWORKMASKOCTAL__/$NetworkMaskOctal/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__HostName__/$HostName/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER1__/$NTPSERVER1/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER2__/$NTPSERVER2/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER3__/$NTPSERVER3/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__NTPSERVER4__/$NTPSERVER4/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACMASTER1__/$MAC_Master_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACMASTER2__/$MAC_Master_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACMASTER3__/$MAC_Master_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACWORKER1__/$MAC_Worker_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACWORKER2__/$MAC_Worker_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACWORKER3__/$MAC_Worker_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__MACBOOTSTRAP__/$MAC_Bootstrap/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPMASTER1__/$IP_Master_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPMASTER2__/$IP_Master_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPMASTER3__/$IP_Master_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPWORKER1__/$IP_Worker_01/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPWORKER2__/$IP_Worker_02/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPWORKER3__/$IP_Worker_03/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__IPBOOTSTRAP__/$IP_Bootstrap/g" /etc/dhcp/dhcpd.conf
+
+  systemctl restart dhcpd
+  systemctl enable dhcpd
+  systemctl status dhcpd |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
+
+configura_dhcp_neo(){
+  echo -e "\n###################################"
+  echo -e "# Configuracion Del Servicio DHCP #"
+  echo -e "###################################\n"
+
+  cp ./Template_Files/neo/neo_dhcp.conf_template /etc/dhcp/dhcpd.conf   
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASK__/$NetworkMask/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASKOCTAL__/$NetworkMaskOctal/g" /etc/dhcp/dhcpd.conf
@@ -335,6 +415,36 @@ configura_tftp_generico(){
   sed -i "s/__IP__/$IPHelper/g" /var/lib/tftpboot/pxelinux.cfg/default
   sed -i "s/__KERNEL__/$kernel/g" /var/lib/tftpboot/pxelinux.cfg/default
   sed -i "s/__INITRAMFS__/$initramfs/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__ROOTFS__/$rootfs/g" /var/lib/tftpboot/pxelinux.cfg/default
+
+
+  systemctl restart tftp
+  systemctl enable tftp
+  systemctl status tftp |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
+
+configura_tftp_neo(){
+  echo -e "\n###################################"
+  echo -e "# Configuracion Del Servicio TFTP #"
+  echo -e "###################################\n"
+
+  mkdir -p /var/lib/tftpboot/rhcos/
+  mkdir -p /var/lib/tftpboot/pxelinux.cfg/
+
+  \cp -f /tftpboot/* /var/lib/tftpboot/.
+
+  cp -f ${REGISTRY_BASE}/downloads/images/${initramfs} /var/lib/tftpboot/rhcos/
+  cp -f ${REGISTRY_BASE}/downloads/images/${kernel} /var/lib/tftpboot/rhcos/
+
+  cp ./Template_Files/neo/neo_tftp_config_template /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP__/$IPHelper/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__KERNEL__/$kernel/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__INITRAMFS__/$initramfs/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__ROOTFS__/$rootfs/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__OCPNAME__/$ClusterName/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__DOMAIN__/$Domain/g" /var/lib/tftpboot/pxelinux.cfg/default
 
   systemctl restart tftp
   systemctl enable tftp
@@ -356,6 +466,31 @@ configura_haproxy_generico(){
   sed -i "s/__DOMAIN__/$Domain/g" /etc/haproxy/haproxy.cfg
   sed -i "s/__CLUSTERNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
 
+  sed -i '/After.*/a After=named.service' /usr/lib/systemd/system/haproxy.service
+
+  echo -e "\n# Iniciando Servicio HAProxy.\n"
+
+  systemctl daemon-reload
+  systemctl restart haproxy
+  systemctl enable haproxy
+  systemctl status haproxy |grep 'Loaded\|Active'
+}
+
+#-----------------------------------------------------------------------
+
+configura_haproxy_neo(){
+  echo -e "\n################################"
+  echo -e "# Creacion de carpetas HAProxy #"
+  echo -e "################################\n"
+
+  mkdir -p /etc/haproxy/certs
+
+  tree /etc/haproxy/
+
+  cp ./Template_Files/neo/neo_haproxy.cfg_template /etc/haproxy/haproxy.cfg
+  sed -i "s/__DOMAIN__/$Domain/g" /etc/haproxy/haproxy.cfg
+  sed -i "s/__CLUSTERNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
+  sed -i "s/__OCPNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
   sed -i '/After.*/a After=named.service' /usr/lib/systemd/system/haproxy.service
 
   echo -e "\n# Iniciando Servicio HAProxy.\n"
@@ -561,11 +696,11 @@ main(){
     configura_ignition_files
     ;;
     neo)
-    configura_dns_generico
-    configura_dhcp_generico
+    configura_dns_neo
+    configura_dhcp_neo
     configura_http
-    configura_tftp_generico
-    configura_haproxy_generico
+    configura_tftp_neo
+    configura_haproxy_neo
     configura_certs
     configura_registry
     carga_imagenes

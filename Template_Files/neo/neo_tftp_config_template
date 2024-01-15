@@ -4,29 +4,29 @@ timeout 0
 menu title Openshift 4.x PXE Menu
 
 label INSTALL BOOTSTRAP
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/bootstrap.ign
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITFRAMS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/bootstrap.ign
 
 label INSTALL MASTER-1
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.6::$IPGateway:255.255.252.0:master-01.$Domain:enp1s0:none nameserver=$IPDns
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITFRAMS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign ip=$IPSegment.6::$IPGateway:255.255.252.0:master-01.__COPNAME__.__DOMAIN__:bond0:none nameserver=__IP__ bond=bond0:ens1f0,ens1f1,ens3f0,ens3f1:mode=802.3ad,lacp_rate=fast,miimon=100,xmit_hash_policy=layer2+3
 
 label INSTALL MASTER-2
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.7::$IPGateway:255.255.252.0:master-02.$Domain:enp1s0:none nameserver=$IPDns
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITFRAMS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign ip=$IPSegment.7::$IPGateway:255.255.252.0:master-02.__COPNAME__.__DOMAIN__:bond0:none nameserver=__IP__ bond=bond0:ens1f0,ens1f1,ens3f0,ens3f1:mode=802.3ad,lacp_rate=fast,miimon=100,xmit_hash_policy=layer2+3
 
 label INSTALL MASTER-3
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/master.ign ip=$IPSegment.8::$IPGateway:255.255.252.0:master-03.$Domain:enp1s0:none nameserver=$IPDns
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITFRAMS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign ip=$IPSegment.8::$IPGateway:255.255.252.0:master-03.__COPNAME__.__DOMAIN__:bond0:none nameserver=__IP__ bond=bond0:ens1f0,ens1f1,ens3f0,ens3f1:mode=802.3ad,lacp_rate=fast,miimon=100,xmit_hash_policy=layer2+3
 
 label INSTALL WORKER-1
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.9::$IPGateway:255.255.252.0:worker-01.$Domain:enp1s0:none nameserver=$IPDns
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITFRAMS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign ip=$IPSegment.9::$IPGateway:255.255.252.0:worker-01.__COPNAME__.__DOMAIN__:bond0:none nameserver=__IP__ bond=bond0:ens1f0,ens1f1,ens4f0,ens4f1:mode=802.3ad,lacp_rate=fast,miimon=100,xmit_hash_policy=layer2+3
 
 label INSTALL WORKER-2
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.10::$IPGateway:255.255.252.0:worker-02.$Domain:enp1s0:none nameserver=$IPDns
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITFRAMS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign ip=$IPSegment.10::$IPGateway:255.255.252.0:worker-02.__COPNAME__.__DOMAIN__:bond0:none nameserver=__IP__ bond=bond0:ens1f0,ens1f1,ens4f0,ens4f1:mode=802.3ad,lacp_rate=fast,miimon=100,xmit_hash_policy=layer2+3
 
 label INSTALL WORKER-3
-kernel /rhcos/${kernel}
-append initrd=/rhcos/${initramfs} coreos.live.rootfs_url=http://${IPHelper}:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://${IPHelper}:8080/ignition/worker.ign ip=$IPSegment.11::$IPGateway:255.255.252.0:worker-03.$Domain:enp1s0:none nameserver=$IPDns
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITFRAMS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign ip=$IPSegment.11::$IPGateway:255.255.252.0:worker-03.__COPNAME__.__DOMAIN__:bond0:none nameserver=__IP__ bond=bond0:ens1f0,ens1f1,ens4f0,ens4f1:mode=802.3ad,lacp_rate=fast,miimon=100,xmit_hash_policy=layer2+3

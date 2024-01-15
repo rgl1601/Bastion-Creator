@@ -5,12 +5,12 @@ menu title Openshift 4.x PXE Menu
 
 label INSTALL BOOTSTRAP
 kernel /rhcos/__KERNEL__
-append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/bootstrap.ign
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/bootstrap.ign
 
 label INSTALL MASTER
 kernel /rhcos/__KERNEL__
-append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign
 
 label INSTALL WORKER
 kernel /rhcos/__KERNEL__
-append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/${rootfs} coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign

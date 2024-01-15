@@ -1,42 +1,42 @@
 $TTL 1W
-@       IN      SOA     ns1.__DOMAIN__.        root (
+@       IN      SOA     ns1.__OCPNAME__.__DOMAIN__.        root (
                         2019070700      ; serial
                         3H              ; refresh (3 hours)
                         30M             ; retry (30 minutes)
                         2W              ; expiry (2 weeks)
                         1W )            ; minimum (1 week)
-        IN      NS      ns1.__DOMAIN__.
-        IN      MX 10   smtp.__DOMAIN__.
+        IN      NS      ns1.__OCPNAME__.__DOMAIN__.
+        IN      MX 10   smtp.__OCPNAME__.__DOMAIN__.
 ;
 ;
-ns1.__DOMAIN__.                IN      A       __IP__
+ns1.__OCPNAME__.__DOMAIN__.                IN      A       __IP__
 ;
-__ShortHostName__.__DOMAIN__.            IN      A       __IP__
+__ShortHostName__.__OCPNAME__.__DOMAIN__.            IN      A       __IP__
 ;
-api.__DOMAIN__.           IN      A       __IP__
-api-int.__DOMAIN__.       IN      A       __IP__
+api.__OCPNAME__.__DOMAIN__.           IN      A       __IP__
+api-int.__OCPNAME__.__DOMAIN__.       IN      A       __IP__
 ;
-*.apps.__DOMAIN__.        IN      A       __IP__
-*.hiperion.__DOMAIN__     IN      A       __IP__
-*.sia.__DOMAIN__          IN      A       __IP__
-*.impact.__DOMAIN__       IN      A       __IP__
+*.apps.__OCPNAME__.__DOMAIN__.        IN      A       __IP__
+*.hiperion.__OCPNAME__.__DOMAIN__     IN      A       __IP__
+*.sia.__OCPNAME__.__DOMAIN__          IN      A       __IP__
+*.impact.__OCPNAME__.__DOMAIN__       IN      A       __IP__
 ;
-registryapp.__DOMAIN__    IN      A       __IPSEGMENT__.2
+registryapp.__OCPNAME__.__DOMAIN__    IN      A       __IPSEGMENT__.2
 ;
-bootstrap.__DOMAIN__.     IN      A       __IPSEGMENT__.5
+bootstrap.__OCPNAME__.__DOMAIN__.     IN      A       __IPSEGMENT__.5
 ;
-master-01.__DOMAIN__.     IN      A       __IPSEGMENT__.6
-master-02.__DOMAIN__.     IN      A       __IPSEGMENT__.7
-master-03.__DOMAIN__.     IN      A       __IPSEGMENT__.8
+master-01.__OCPNAME__.__DOMAIN__.     IN      A       __IPSEGMENT__.6
+master-02.__OCPNAME__.__DOMAIN__.     IN      A       __IPSEGMENT__.7
+master-03.__OCPNAME__.__DOMAIN__.     IN      A       __IPSEGMENT__.8
 ;
-worker-01.__DOMAIN__.     IN      A       __IPSEGMENT__.9
-worker-02.__DOMAIN__.     IN      A       __IPSEGMENT__.10
-worker-03.__DOMAIN__.     IN      A       __IPSEGMENT__.11
+worker-01.__OCPNAME__.__DOMAIN__.     IN      A       __IPSEGMENT__.9
+worker-02.__OCPNAME__.__DOMAIN__.     IN      A       __IPSEGMENT__.10
+worker-03.__OCPNAME__.__DOMAIN__.     IN      A       __IPSEGMENT__.11
 
-ntpmad1.__DOMAIN__.       IN      CNAME   ntpmad1.satm.maqtor.
-ntpmad2.__DOMAIN__.       IN      CNAME   ntpmad2.satm.maqtor.
-ntpbcn1.__DOMAIN__.       IN      CNAME   ntpbcn1.satm.maqtor.
-ntpbcn2.__DOMAIN__.       IN      CNAME   ntpbcn2.satm.maqtor.
+ntpmad1.__OCPNAME__.__DOMAIN__.       IN      CNAME   ntpmad1.__DOMAIN__.
+ntpmad2.__OCPNAME__.__DOMAIN__.       IN      CNAME   ntpmad2.__DOMAIN__.
+ntpbcn1.__OCPNAME__.__DOMAIN__.       IN      CNAME   ntpbcn1.__DOMAIN__.
+ntpbcn2.__OCPNAME__.__DOMAIN__.       IN      CNAME   ntpbcn2.__DOMAIN__.
 
-idmmad.__DOMAIN__.        IN      CNAME   idmmad.satm.maqtor.
-idmbcn.__DOMAIN__.        IN      CNAME   idmbcn.satm.maqtor.
+idmmad.__OCPNAME__.__DOMAIN__.        IN      CNAME   idmmad.__DOMAIN__.
+idmbcn.__OCPNAME__.__DOMAIN__.        IN      CNAME   idmbcn.__DOMAIN__.

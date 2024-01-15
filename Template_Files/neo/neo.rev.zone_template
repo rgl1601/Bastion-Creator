@@ -1,0 +1,27 @@
+$ORIGIN __IPREV__.in-addr.arpa.
+$TTL 1W
+@       IN      SOA     ns1.__OCPNAME__.__DOMAIN__.        root (
+                        2019070700      ; serial
+                        3H              ; refresh (3 hours)
+                        30M             ; retry (30 minutes)
+                        2W              ; expiry (2 weeks)
+                        1W )            ; minimum (1 week)
+        IN      NS      ns1.__OCPNAME__.__DOMAIN__.
+        IN      NS      nfs.__OCPNAME__.__DOMAIN__.
+;
+1      IN  PTR __ShortHostName__.__OCPNAME__.__DOMAIN__.
+1      IN  PTR api.__OCPNAME__.__DOMAIN__.
+1      IN  PTR api-int.__OCPNAME__.__DOMAIN__.
+;
+2      IN  PTR registryapp.__OCPNAME__.__DOMAIN__.
+;
+5      IN  PTR bootstrap.__OCPNAME__.__DOMAIN__.
+;
+6      IN  PTR master-01.__OCPNAME__.__DOMAIN__.
+7      IN  PTR master-02.__OCPNAME__.__DOMAIN__.
+8      IN  PTR master-03.__OCPNAME__.__DOMAIN__.
+;
+9      IN  PTR worker-01.__OCPNAME__.__DOMAIN__.
+10     IN  PTR worker-02.__OCPNAME__.__DOMAIN__.
+11     IN  PTR worker-03.__OCPNAME__.__DOMAIN__.
+;
