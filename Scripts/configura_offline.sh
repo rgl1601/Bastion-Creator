@@ -103,7 +103,7 @@ actualiza_hostname(){
 
   HostName=`hostname`
   ShortHostName=`hostname -s`
-  Domain=`hostname -d`
+  LongDomain=`hostname -d`
 
   # Muestreo del resultado.
   echo -e "${RESTORE}Hostname completo:${GREEN} `hostname`"
@@ -226,25 +226,25 @@ configura_dns_generico(){
   # Configuracion de DNS
   cp ./Template_Files/generic/generic_named.conf_template /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/named.conf
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/named.conf
   sed -i "s/__IPREV__/$IPRev/g" /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
 
   cp ./Template_Files/generic/generic_resolv.conf_template /etc/resolv.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/resolv.conf
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/resolv.conf
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/resolv.conf
   
   # Configuracion de la zona DNS
-  cp ./Template_Files/generic/generic.zone_template /var/named/$Domain.zone
-  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.zone
-  sed -i "s/__IP__/$IPHelper/g" /var/named/$Domain.zone
-  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$Domain.zone
-  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$Domain.zone
+  cp ./Template_Files/generic/generic.zone_template /var/named/$LongDomain.zone
+  sed -i "s/__DOMAIN__/$LongDomain/g" /var/named/$LongDomain.zone
+  sed -i "s/__IP__/$IPHelper/g" /var/named/$LongDomain.zone
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$LongDomain.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$LongDomain.zone
   
   # Configuracion de la zona reversa.
-  cp ./Template_Files/generic/generic.rev.zone_template /var/named/$Domain.rev.zone
-  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.rev.zone
-  sed -i "s/__IPREV__/$IPRev/g" /var/named/$Domain.rev.zone
+  cp ./Template_Files/generic/generic.rev.zone_template /var/named/$LongDomain.rev.zone
+  sed -i "s/__DOMAIN__/$LongDomain/g" /var/named/$LongDomain.rev.zone
+  sed -i "s/__IPREV__/$IPRev/g" /var/named/$LongDomain.rev.zone
   
   systemctl restart named
   systemctl enable named
@@ -261,28 +261,28 @@ configura_dns_neo(){
   # Configuracion de DNS
   cp ./Template_Files/neo/neo_named.conf_template /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/named.conf
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/named.conf
   sed -i "s/__IPREV__/$IPRev/g" /etc/named.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/named.conf
 
   cp ./Template_Files/neo/neo_resolv.conf_template /etc/resolv.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/resolv.conf
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/resolv.conf
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/resolv.conf
 
   # Configuracion de la zona DNS
-  cp ./Template_Files/neo/neo.zone_template /var/named/$Domain.zone
-  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.zone
-  sed -i "s/__IP__/$IPHelper/g" /var/named/$Domain.zone
-  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$Domain.zone
-  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$Domain.zone
+  cp ./Template_Files/neo/neo.zone_template /var/named/$LongDomain.zone
+  sed -i "s/__DOMAIN__/$LongDomain/g" /var/named/$LongDomain.zone
+  sed -i "s/__IP__/$IPHelper/g" /var/named/$LongDomain.zone
+  sed -i "s/__IPSEGMENT__/$IPSegment/g" /var/named/$LongDomain.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$LongDomain.zone
 
 
   # Configuracion de la zona reversa.
-  cp ./Template_Files/neo/neo.rev.zone_template /var/named/$Domain.rev.zone
-  sed -i "s/__DOMAIN__/$Domain/g" /var/named/$Domain.rev.zone
-  sed -i "s/__IPREV__/$IPRev/g" /var/named/$Domain.rev.zone
-  sed -i "s/__OCPNAME__/$IPRev/g" /var/named/$Domain.rev.zone
-  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$Domain.rev.zone
+  cp ./Template_Files/neo/neo.rev.zone_template /var/named/$LongDomain.rev.zone
+  sed -i "s/__DOMAIN__/$LongDomain/g" /var/named/$LongDomain.rev.zone
+  sed -i "s/__IPREV__/$IPRev/g" /var/named/$LongDomain.rev.zone
+  sed -i "s/__OCPNAME__/$IPRev/g" /var/named/$LongDomain.rev.zone
+  sed -i "s/__ShortHostName__/$ShortHostName/g" /var/named/$LongDomain.rev.zone
   
   systemctl restart named
   systemctl enable named
@@ -297,7 +297,7 @@ configura_dhcp_generico(){
   echo -e "###################################\n"
 
   cp ./Template_Files/generic/generic_dhcp.conf_template /etc/dhcp/dhcpd.conf   
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASK__/$NetworkMask/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASKOCTAL__/$NetworkMaskOctal/g" /etc/dhcp/dhcpd.conf
@@ -335,7 +335,7 @@ configura_dhcp_neo(){
   echo -e "###################################\n"
 
   cp ./Template_Files/neo/neo_dhcp.conf_template /etc/dhcp/dhcpd.conf   
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/dhcp/dhcpd.conf
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__IP__/$IPHelper/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASK__/$NetworkMask/g" /etc/dhcp/dhcpd.conf
   sed -i "s/__NETWORKMASKOCTAL__/$NetworkMaskOctal/g" /etc/dhcp/dhcpd.conf
@@ -440,7 +440,15 @@ configura_tftp_neo(){
   sed -i "s/__INITRAMFS__/$initramfs/g" /var/lib/tftpboot/pxelinux.cfg/default
   sed -i "s/__ROOTFS__/$rootfs/g" /var/lib/tftpboot/pxelinux.cfg/default
   sed -i "s/__OCPNAME__/$ClusterName/g" /var/lib/tftpboot/pxelinux.cfg/default
-  sed -i "s/__DOMAIN__/$Domain/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__DOMAIN__/$LongDomain/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_MASTER_1__/$IP_Master_01/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_MASTER_2__/$IP_Master_02/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_MASTER_3__/$IP_Master_03/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_WORKER_1__/$IP_Worker_01/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_WORKER_2__/$IP_Worker_02/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_WORKER_3__/$IP_Worker_03/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_GATEWAY__/$IPGateway/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__NETWORK_MASK__/$NetworkMask/g" /var/lib/tftpboot/pxelinux.cfg/default
 
   systemctl restart tftp
   systemctl enable tftp
@@ -459,7 +467,7 @@ configura_haproxy_generico(){
   tree /etc/haproxy/
 
   cp ./Template_Files/generic/generic_haproxy.cfg_template /etc/haproxy/haproxy.cfg
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/haproxy/haproxy.cfg
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/haproxy/haproxy.cfg
   sed -i "s/__CLUSTERNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
 
   sed -i '/After.*/a After=named.service' /usr/lib/systemd/system/haproxy.service
@@ -484,7 +492,7 @@ configura_haproxy_neo(){
   tree /etc/haproxy/
 
   cp ./Template_Files/neo/neo_haproxy.cfg_template /etc/haproxy/haproxy.cfg
-  sed -i "s/__DOMAIN__/$Domain/g" /etc/haproxy/haproxy.cfg
+  sed -i "s/__DOMAIN__/$LongDomain/g" /etc/haproxy/haproxy.cfg
   sed -i "s/__CLUSTERNAME__/$ClusterName/g" /etc/haproxy/haproxy.cfg
   sed -i '/After.*/a After=named.service' /usr/lib/systemd/system/haproxy.service
 
