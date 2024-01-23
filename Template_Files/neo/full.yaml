@@ -7,20 +7,20 @@ mirror:
         - name: kubevirt-hyperconverged
           channels:
             - name: stable
-              minversion: 4.13.0
-              maxversion: 4.13.0
+              minversion: 4.14.2
+              maxversion: 4.14.2
         - name: mtv-operator
           channels:
             - name: release-v2.5
-              minversion: 2.5.2
-              maxversion: 2.5.2
+              minversion: 2.5.4
+              maxversion: 2.5.4
     - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.13
       packages:
         - name: kubernetes-nmstate-operator
           channels:
             - name: stable
-              minversion: 4.13.0-202307242035
-              maxversion: 4.13.0-202307242035
+              minversion: 4.13.0-202311211131
+              maxversion: 4.13.0-202311211131
 storageConfig:
   local:
-    path: /root/metadata 
+    path: /root/metadata
