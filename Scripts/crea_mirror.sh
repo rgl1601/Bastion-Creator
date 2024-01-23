@@ -289,10 +289,15 @@ display_mensaje(){
 }
 
 descarga_operadores(){
+    wget https://mirror.openshift.com/pub/openshift-v4/x86_64/clients/ocp/4.12.14/oc-mirror.tar.gz
+    tar -xzvf oc-mirror.tar.gz -C /usr/local/bin/
+    rm -rf oc-mirror.tar.gz
+    chmod +x /usr/local/bin/oc-mirror
     registry_local=`podman ps -a |grep -v NAME| cut -d" " -f 1`
     podman stop $registry_local
     podman rm $registry_local
-    podman run -d -p50051:50051 -it registry.redhat.io/redhat/redhat-operatorindex:v4.14
+    podman login -u $RedHatUser -p $RedHatPassword registry.redhat.io
+    podman run -d -p50051:50051 -it registry.redhat.io/redhat/redhat-operator-index:v4.14
     oc-mirror --config=./Template_Files/neo/full.yaml file://output-dir
 }
 descarga_driver_csi(){
