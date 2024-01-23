@@ -23,4 +23,4 @@ mirror:
               maxversion: 4.13.0-202307242035
 storageConfig:
   local:
-    path: metadata 
+    path: /root/metadata 

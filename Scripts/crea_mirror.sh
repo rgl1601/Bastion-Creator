@@ -298,7 +298,7 @@ descarga_operadores(){
     podman rm $registry_local
     podman login -u $RedHatUser -p $RedHatPassword registry.redhat.io
     podman run -d -p50051:50051 -it registry.redhat.io/redhat/redhat-operator-index:v4.14
-    oc-mirror --config=./Template_Files/neo/full.yaml file://output-dir
+    oc-mirror --config=./Template_Files/neo/full.yaml file:///root/output-dir
 }
 descarga_driver_csi(){
     yum install git
