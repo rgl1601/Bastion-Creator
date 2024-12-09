@@ -14,6 +14,13 @@ También puede ser utilizada para realizar una actualización desconectada de OC
 
 Este script a su vez llama a los scripts situados en la carpeta "Scripts" configura_update_offline.sh o crea_update_mirror.sh en función de los parámetros anteriores.
 
+También puede ser utilizada para realizar una actualización desconectada de OCP, para ello se debe ejecutar de la siguiente manera:
+
+./main.sh online update (Para la creacion del mirror de la update.)
+./main.sh offline update (Para la configuracion del entorno desconectado y la ejecución de la actualziación de manera automática.)
+
+Este script a su vez llama a los scripts situados en la carpeta "Scripts" configura_update_offline.sh o crea_update_mirror.sh en función de los parámetros anteriores.
+
 ## Necesidades Uso Online
 
 Para realizar el mirror es necesario tener una suscripción activa a RedHat, tener la máquina registrada a la suscripción y conexión a internet.
