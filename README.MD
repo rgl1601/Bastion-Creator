@@ -7,6 +7,12 @@ Para utilizarla se ejecuta el script main.sh indicando como parámetro si se qui
 ./main.sh offline (Para la configuracion del entorno desconectado.)
 
 Este script a su vez llama a los scripts situados en la carpeta "Scripts" configura_offline.sh o crea_mirror.sh en función del parámetro anterior.
+También puede ser utilizada para realizar una actualización desconectada de OCP, para ello se debe ejecutar de la siguiente manera:
+
+./main.sh online update (Para la creacion del mirror de la update.)
+./main.sh offline update (Para la configuracion del entorno desconectado y la ejecución de la actualziación de manera automática.)
+
+Este script a su vez llama a los scripts situados en la carpeta "Scripts" configura_update_offline.sh o crea_update_mirror.sh en función de los parámetros anteriores.
 
 ## Necesidades Uso Online
 

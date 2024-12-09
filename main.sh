@@ -23,9 +23,12 @@ help(){
     echo -e "# Instrucciones De Uso #"
     echo -e "########################\n${RESTORE}"
     echo -e "- Para utilizar el siguiente script se debera indicar una de las siguientes opciones: ${GREEN}online ${RESTORE}u ${GREEN}offline${RESTORE}.\n"
-    echo -e "- ${GREEN}Online:${RESTORE} Indicara la creacion del archivo .tar para una instalacion desconectada.\n  ${YELLOW}ATENCION: ${RESTORE}Para esta opcion necesitara conexion a internet asi como una suscripcion activa de redhat.\n"
+    echo -e "- ${GREEN}Online:${RESTORE} Indicara la creacion del archivo .tar.gz para una instalacion desconectada.\n  ${YELLOW}ATENCION: ${RESTORE}Para esta opcion necesitara conexion a internet asi como una suscripcion activa de redhat.\n"
     echo -e "- ${GREEN}Offline:${RESTORE} Utilizado para configurar la maquina bastion desconectada.\n  ${YELLOW}ATENCION: ${RESTORE}Esta opcion necesita tener una iso del SO instalado montada sobre /mnt para un correcto funcionamiento.\n"
     echo -e "- Ejemplo de ejecución:\n${GREEN}# ./main.sh offline${RESTORE}\n"
+    echo -e "- Para utilizar el siguiente script para actualizar un ocp se debera indicar la opcion ${GREEN}update${RESTORE} despues del tipo de instalacion.${RESTORE}\n"
+    echo -e "- Ejemplo de ejecución:\n${GREEN}# ./main.sh online update${RESTORE} # Creara un archivo .tar.gz para la actualizacion desconectada.\n"
+    echo -e "- Ejemplo de ejecución:\n${GREEN}# ./main.sh offline update${RESTORE} # Ejecutara la actualizacion desconectada.\n"
     echo -e "- En caso de mas dudas, se recomienda leer el archivo ${YELLOW}README.MD${RESTORE}\n"
 exit;
 }
