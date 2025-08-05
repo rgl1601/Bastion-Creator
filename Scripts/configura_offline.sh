@@ -412,6 +412,16 @@ configura_tftp_generico(){
   sed -i "s/__KERNEL__/$kernel/g" /var/lib/tftpboot/pxelinux.cfg/default
   sed -i "s/__INITRAMFS__/$initramfs/g" /var/lib/tftpboot/pxelinux.cfg/default
   sed -i "s/__ROOTFS__/$rootfs/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__OCPNAME__/$ClusterName/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__DOMAIN__/$LongDomain/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_MASTER_1__/$IP_Master_01/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_MASTER_2__/$IP_Master_02/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_MASTER_3__/$IP_Master_03/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_WORKER_1__/$IP_Worker_01/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_WORKER_2__/$IP_Worker_02/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_WORKER_3__/$IP_Worker_03/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__IP_GATEWAY__/$IPGateway/g" /var/lib/tftpboot/pxelinux.cfg/default
+  sed -i "s/__NETWORK_MASK__/$NetworkMask/g" /var/lib/tftpboot/pxelinux.cfg/default
 
 
   systemctl restart tftp

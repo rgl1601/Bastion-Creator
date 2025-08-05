@@ -7,10 +7,26 @@ label INSTALL BOOTSTRAP
 kernel /rhcos/__KERNEL__
 append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/bootstrap.ign
 
-label INSTALL MASTER
+label INSTALL MASTER-1
 kernel /rhcos/__KERNEL__
-append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign ip=__IP_MASTER_1__::__IP_GATEWAY__:__NETWORK_MASK__:master-01.__DOMAIN__::none nameserver=__IP__
 
-label INSTALL WORKER
+label INSTALL MASTER-2
 kernel /rhcos/__KERNEL__
-append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign ip=__IP_MASTER_2__::__IP_GATEWAY__:__NETWORK_MASK__:master-02.__DOMAIN__::none nameserver=__IP__
+
+label INSTALL MASTER-3
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/master.ign ip=__IP_MASTER_3__::__IP_GATEWAY__:__NETWORK_MASK__:master-03.__DOMAIN__::none nameserver=__IP__
+
+label INSTALL WORKER-1
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign ip=__IP_WORKER_1__::__IP_GATEWAY__:__NETWORK_MASK__:worker-01.__DOMAIN__::none nameserver=__IP__
+
+label INSTALL WORKER-2
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign ip=__IP_WORKER_2__::__IP_GATEWAY__:__NETWORK_MASK__:worker-02.__DOMAIN__::none nameserver=__IP__
+
+label INSTALL WORKER-3
+kernel /rhcos/__KERNEL__
+append initrd=/rhcos/__INITRAMFS__ coreos.live.rootfs_url=http://__IP__:8080/img/__ROOTFS__ coreos.inst.install_dev=/dev/sda coreos.inst.ignition_url=http://__IP__:8080/ignition/worker.ign ip=__IP_WORKER_3__::__IP_GATEWAY__:__NETWORK_MASK__:worker-03.__DOMAIN__::none nameserver=__IP__
