@@ -35,24 +35,42 @@ exit;
 
 # Funcion principal que llama a los scripts necesarios.
 main(){
-    if [[ "$1" == "online" ]];
+    if [[ $# = 1 ]];
     then
-        source ./Scripts/crea_mirror.sh
-        exit;
-    elif [[ "$1" == "offline" ]];
+    	if [[ "$1" == "online" ]];
+    	then
+        	source ./Scripts/crea_mirror.sh
+        	exit;
+    	elif [[ "$1" == "offline" ]];
+    	then
+        	source ./Scripts/configura_offline.sh
+        	exit;
+    	else
+        	help
+    	fi
+    elif [[ $# = 2 ]];
     then
-        source ./Scripts/configura_offline.sh
-        exit;
+    	if [[ "$1" == "online" ]] && [[ "$2" == "update" ]];
+    	then
+        	source ./Scripts/crea_update_mirror.sh
+        	exit;
+    	elif [[ "$1" == "offline" ]] && [[ "$2" == "update" ]];
+    	then
+        	source ./Scripts/configura_update_offline.sh
+        	exit;
+    	else
+        	help
+    	fi
     else
         help
     fi
 }
 
 # Comprobacion del numero de variables para un correcto funcionamiento.
-if [[ $# != 1 ]];
-then
-    help
-fi
+#if [[ $# != 1 ]] || [[ $# != 2 ]];
+#then
+#    help
+#fi
 
 # Llamada de la funcion main con el parametro pasado en la ejecucion del script.
-main $1
+main $1 $2

@@ -7,4 +7,5 @@ podman run --name my-registry --rm -d -p 5000:5000 \
 -v __REGISTRYBASE__/certs:/certs:z \
 -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/domain.crt \
 -e REGISTRY_HTTP_TLS_KEY=/certs/domain.key \
+-e REGISTRY_STORAGE_DELETE_ENABLED=true \
 docker.io/library/registry:2
