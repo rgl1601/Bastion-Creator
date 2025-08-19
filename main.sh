@@ -25,6 +25,7 @@ help(){
     echo -e "- Para utilizar el siguiente script se debera indicar una de las siguientes opciones: ${GREEN}online ${RESTORE}u ${GREEN}offline${RESTORE}.\n"
     echo -e "- ${GREEN}Online:${RESTORE} Indicara la creacion del archivo .tar.gz para una instalacion desconectada.\n  ${YELLOW}ATENCION: ${RESTORE}Para esta opcion necesitara conexion a internet asi como una suscripcion activa de redhat.\n"
     echo -e "- ${GREEN}Offline:${RESTORE} Utilizado para configurar la maquina bastion desconectada.\n  ${YELLOW}ATENCION: ${RESTORE}Esta opcion necesita tener una iso del SO instalado montada sobre /mnt para un correcto funcionamiento.\n"
+    echo -e "- ${GREEN}Clean:${RESTORE} Opción para borrar el contenido de versiones anteriores de OCP del registry local.\n  ${YELLOW}ATENCION: ${RESTORE}Esta opcion eliminará las imágenes de la versión indicada y no se puede deshacer..\n"
     echo -e "- Ejemplo de ejecución:\n${GREEN}# ./main.sh offline${RESTORE}\n"
     echo -e "- Para utilizar el siguiente script para actualizar un ocp se debera indicar la opcion ${GREEN}update${RESTORE} despues del tipo de instalacion.${RESTORE}\n"
     echo -e "- Ejemplo de ejecución:\n${GREEN}# ./main.sh online update${RESTORE} # Creara un archivo .tar.gz para la actualizacion desconectada.\n"
@@ -44,6 +45,10 @@ main(){
     	elif [[ "$1" == "offline" ]];
     	then
         	source ./Scripts/configura_offline.sh
+        	exit;
+    	elif [[ "$1" == "clean" ]];
+    	then
+        	source ./Scripts/clean_registry.sh
         	exit;
     	else
         	help

@@ -252,13 +252,13 @@ echo -e "######################################"
 echo -e "# Descarga de imagenes de OpenShift. #"
 echo -e "######################################\n"
 
-oc adm -a ${LOCAL_SECRET_JSON} release mirror \
+oc adm -a ${LOCAL_UPDATE_SECRET_JSON} release mirror \
 --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${UPDATE_OCP_RELEASE_ARCH} \
 --to=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY} \
 --to-release-image=${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${UPDATE_OCP_RELEASE_ARCH} \
 --to-dir=/update/mirror > ${UPDATE_REGISTRY_BASE}/downloads/secrets/mirror-output.txt
 
-oc adm -a ${LOCAL_SECRET_JSON} release mirror \
+oc adm -a ${LOCAL_UPDATE_SECRET_JSON} release mirror \
 --from=quay.io/${PRODUCT_REPO}/${RELEASE_NAME}:${UPDATE_OCP_RELEASE_ARCH} \
 --to-dir=/update/mirror
 
@@ -268,7 +268,7 @@ echo -e "\n##############################################"
 echo -e "# Descarga de instalador local de OpenShift. #"
 echo -e "##############################################\n"
 
-oc adm -a ${LOCAL_SECRET_JSON} release extract --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${UPDATE_OCP_RELEASE_ARCH}"
+oc adm -a ${LOCAL_UPDATE_SECRET_JSON} release extract --command=openshift-install "${LOCAL_REGISTRY}/${LOCAL_REPOSITORY}:${UPDATE_OCP_RELEASE_ARCH}"
 
 echo -e "\n###############################################"
 echo -e "# Guardado de Registry para uso desconectado. #"
