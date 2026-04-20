@@ -1,11 +1,11 @@
 [AppStream]
 name=AppStream
-baseurl=file:///mnt/AppStream
+baseurl=file:///media/disc/AppStream
 gpgcheck=0
 enabled=1
 
 [BaseOS]
 name=BaseOS
-baseurl=file:///mnt/BaseOS
+baseurl=file:///media/disc/BaseOS
 gpgcheck=0
 enabled=1

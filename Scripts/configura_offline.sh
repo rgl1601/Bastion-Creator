@@ -63,8 +63,16 @@ configura_repos(){
   echo -e "# Configurando Repositorios Locales #"
   echo -e "#####################################\n"
 
+  # Crea el lugar donde se montará el DVD
+  mkdir -p /media/disc
+  
   # Copia del archivo de configuracion de repositorios.
   cp ./Template_Files/dvd.repo /etc/yum.repos.d/dvd.repo
+
+  # Crea el auto montaje
+  sed -i '/iso9660/d' /etc/fstab
+  sed -i '/sr0/d' /etc/fstab
+  echo /dev/sr0 /mnt/disc iso9660 default 0 0 >> /etc/fstab
 }
 
 #-----------------------------------------------------------------------
